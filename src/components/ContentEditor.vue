@@ -1,34 +1,21 @@
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 <template>
   <n-card title="生成内容" size="large" hoverable v-if="content">
     <div v-if="content.isRawText" class="raw-content-view">
-      <n-input
-        v-model:value="editorContent.content"
-        type="textarea"
-        :rows="15"
-        placeholder="AI 生成的内容"
-        size="large"
-        @input="handleRawContentChange"
-      />
+      <n-tabs v-model:value="activeTab" type="segment" animated>
+        <n-tab-pane name="preview" tab="预览模式">
+          <div class="markdown-body" v-html="markdownHtml"></div>
+        </n-tab-pane>
+        <n-tab-pane name="edit" tab="编辑模式">
+          <n-input
+            v-model:value="editorContent.content"
+            type="textarea"
+            :rows="15"
+            placeholder="AI 生成的内容"
+            size="large"
+            @input="handleRawContentChange"
+          />
+        </n-tab-pane>
+      </n-tabs>
     </div>
 
     <!-- AI 生成的配图展示区 -->
@@ -157,7 +144,14 @@
 </template>
 
 <script setup>
-import { ref, watch, nextTick } from 'vue'
+import { ref, watch, nextTick, computed } from 'vue'
+import MarkdownIt from 'markdown-it'
+
+const md = new MarkdownIt({
+  html: true,
+  linkify: true,
+  typographer: true
+})
 
 const props = defineProps({
   content: {
@@ -180,6 +174,12 @@ const editorContent = ref({})
 const inputVisible = ref(false)
 const inputValue = ref('')
 const inputRef = ref()
+const activeTab = ref('preview')
+
+const markdownHtml = computed(() => {
+  if (!editorContent.value.content) return ''
+  return md.render(editorContent.value.content)
+})
 
 watch(() => props.content, (newContent) => {
   if (newContent) {
@@ -204,7 +204,10 @@ const showInput = () => {
 
 const handleInputConfirm = () => {
   if (inputValue.value) {
-    editorContent.value.tags.push('#' + inputValue.value.replace('#', ''))
+    if (!editorContent.value.tags) {
+      editorContent.value.tags = []
+    }
+    editorContent.value.tags.push(inputValue.value)
   }
   inputVisible.value = false
   inputValue.value = ''
@@ -215,24 +218,68 @@ const handleRegenerate = () => {
 }
 
 const handlePreview = () => {
-  emit('preview', editorContent.value)
+  emit('preview')
 }
 
-const handleRawContentChange = (val) => {
-  editorContent.value.content = val
+const handleRawContentChange = (value) => {
+  editorContent.value.content = value
 }
 </script>
 
 <style scoped>
+.markdown-body {
+  padding: 16px;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  min-height: 300px;
+  max-height: 600px;
+  font-size: 16px;
+  line-height: 1.6;
+  color: #333;
+  overflow-y: auto;
+}
+
+.markdown-body :deep(h1), 
+.markdown-body :deep(h2), 
+.markdown-body :deep(h3) {
+  margin-top: 24px;
+  margin-bottom: 16px;
+  font-weight: 600;
+  line-height: 1.25;
+}
+
+.markdown-body :deep(p) {
+  margin-top: 0;
+  margin-bottom: 16px;
+}
+
+.markdown-body :deep(ul), 
+.markdown-body :deep(ol) {
+  padding-left: 2em;
+  margin-bottom: 16px;
+}
+
+.markdown-body :deep(code) {
+  padding: 0.2em 0.4em;
+  margin: 0;
+  font-size: 85%;
+  background-color: rgba(175, 184, 193, 0.2);
+  border-radius: 6px;
+}
+
+.markdown-body :deep(blockquote) {
+  padding: 0 1em;
+  color: #636c76;
+  border-left: 0.25em solid #d0d7de;
+  margin: 0 0 16px 0;
+}
+
 .raw-content-view {
   margin-bottom: 24px;
 }
 
 .image-generation-section {
-  margin-bottom: 24px;
-  padding: 16px;
-  background-color: #f9f9f9;
-  border-radius: 8px;
+  margin-top: 24px;
 }
 
 .image-generation-section :deep(.n-divider__title) {
@@ -240,8 +287,3 @@ const handleRawContentChange = (val) => {
   color: #1890ff;
 }
 </style>
-
-
-
-
-

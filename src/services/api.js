@@ -21,7 +21,7 @@ const aiClient = axios.create({
     'HTTP-Referer': window.location.origin, // 某些路由服务需要这个
     'X-Title': 'Xiaohongshu Generator' // 某些路由服务需要这个，必须是 ASCII 字符
   },
-  timeout: 30000
+  timeout: 120000 // 增加到 120 秒，防止生成复杂提示词时超时
 })
 
 /**
@@ -33,7 +33,7 @@ const imageClient = axios.create({
     'Authorization': `Bearer ${import.meta.env.VITE_VOLCENGINE_API_KEY}`,
     'Content-Type': 'application/json'
   },
-  timeout: 60000 // 图片生成可能需要更长时间
+  timeout: 120000 // 增加到 120 秒，图片生成和 AI 复杂推理可能需要更长时间
 })
 
 /**
@@ -51,7 +51,17 @@ const getAIResponse = async (prompt, options = {}) => {
   const payload = {
     model: model,
     messages: [
-      { role: 'system', content: '你是一个专业的小红书文案专家。' },
+      { 
+        role: 'system', 
+        content: `你是一个专业的小红书文案专家。
+你的任务是根据用户提供的关键词或要求，直接生成一篇高质量的小红书文案。
+
+要求：
+1. **只返回文案正文内容**，不要包含标题、不要包含任何解释性文字、不要包含建议的图片描述、不要包含元数据。
+2. 文案应包含吸引人的开头、有价值的正文内容、自然的互动引导以及相关的标签。
+3. 严格遵守 Markdown 格式，可以使用加粗、列表、引用等语法增加可读性。
+4. 不要出现类似 "这是为您生成的文案" 或 "图片建议：" 这样的废话。`
+      },
       { role: 'user', content: prompt }
     ],
     temperature: 0.6,
@@ -196,18 +206,14 @@ export const generationAPI = {
    * @param {Object} options - 流式配置项
    */
   async autoGenerate(keywords, options = {}) {
-    const prompt = `你是一个顶级的小红书运营专家。针对用户提供的关键词 "${keywords}"，请执行以下操作：
+    const prompt = `请针对关键词 "${keywords}"，模拟该行业顶级博主的创作风格，直接生成一篇爆款小红书文案。
     
-    1. 识别该行业或领域内目前最顶尖、最火爆的博主风格或内容方法论。
-    2. 模仿该顶尖风格，直接创作一篇极具吸引力的小红书文案。
-    
-    文案要求：
-    - 正文内容请控制在 500 字以内。
-    - 语气要符合该领域顶级博主的设定（如专业、亲切、毒舌或治愈）。
-    - 结构必须包含：带 Emoji 的标题、分段清晰的正文、精准的标签。
-    - 必须包含针对 AI 绘画的配图建议描述。
-    
-    请直接输出文案内容，不要包含任何前导说明。`
+    要求：
+    1. 风格要极具吸引力，能够引起目标受众取得共鸣。
+    2. 使用 Markdown 格式美化排版（如：使用 Emoji、加粗重点、清晰的分段、列表等）。
+    3. **严禁**输出任何关于图片的建议或描述词，这些工作将由其他系统完成。
+    4. **严禁**输出任何开场白或结束语（如 "好的，为您生成如下："）。
+    5. 直接输出文案内容本身。`
     
     try {
       const content = await getAIResponse(prompt, options)
@@ -233,20 +239,13 @@ export const generationAPI = {
    * @param {string} frameworkId - 框架ID
    */
   async generate(keywords, frameworkId) {
-    const prompt = `作为小红书达人，根据关键词 "${keywords}" 和指定的框架（可能是多个，用逗号分隔） "${frameworkId}"，创作一篇吸引人的小红书文案。
+    const prompt = `作为小红书达人，根据关键词 "${keywords}" 和指定的框架 "${frameworkId}"，创作一篇爆款文案。
     
-    如果是多个框架，请提取各框架的优点进行有机融合。例如：
-    - "爆款引流" 侧重标题和开头
-    - "干货教程" 侧重正文逻辑
-    - "种草推荐" 侧重产品价值点
-
-    注意：正文内容请控制在 500 字以内，避免生成过长导致超时。
-    
-    请直接输出文案内容，包括：
-    1. 标题（带 Emoji）
-    2. 正文（分段清晰，语气亲切）
-    3. 标签（#标签1 #标签2 #标签3）
-    4. 封面及配图建议`
+    要求：
+    1. 提取框架的核心价值点。
+    2. 使用 Markdown 格式美化排版。
+    3. **严禁**输出任何图片建议、前导说明或元数据。
+    4. 直接输出文案正文。`
     
     try {
       const content = await getAIResponse(prompt)
@@ -368,6 +367,9 @@ export const imageGenerationAPI = {
    * @returns {Promise<string[]>}
    */
   async generatePrompts(content) {
+    console.log('--- 开始生成图片提示词 ---')
+    console.log('输入文案长度:', content?.length)
+    
     const prompt = `你是一个专业的 AI 绘画提示词工程师。请根据以下小红书文案内容，提取出最适合的 3 个配图场景，并将每个场景转化为专业、详细、具有视觉冲击力的 AI 绘画提示词（英文或中文均可，建议包含风格、光影、细节描述）。
     
     文案内容：
@@ -380,17 +382,19 @@ export const imageGenerationAPI = {
 
     try {
       const response = await getAIResponse(prompt)
-      // 按行分割并过滤掉空行
-      const prompts = response.split('\n').map(p => p.trim()).filter(p => p.length > 0 && !p.match(/^\d+\./))
+      console.log('AI 返回的原始提示词响应:', response)
+      
       // 如果 AI 返回了带编号的列表，尝试清理编号
       const cleanedPrompts = response.split('\n')
+        .map(p => p.trim())
         .map(p => p.replace(/^\d+[\.、\s]+/, '').trim())
         .filter(p => p.length > 0)
         .slice(0, 3)
       
+      console.log('解析后的提示词列表:', cleanedPrompts)
       return cleanedPrompts
     } catch (error) {
-      console.error('生成图片提示词失败:', error)
+      console.error('生成图片提示词失败，详细错误:', error)
       return []
     }
   }

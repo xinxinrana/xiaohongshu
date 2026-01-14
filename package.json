@@ -13,6 +13,7 @@
     "@vicons/antd": "^0.13.0",
     "axios": "^1.13.2",
     "element-plus": "^2.13.0",
+    "markdown-it": "^14.1.0",
     "naive-ui": "^2.43.2",
     "vue": "^3.5.13",
     "vue-router": "^4.6.4"

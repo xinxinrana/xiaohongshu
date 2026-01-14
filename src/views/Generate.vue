@@ -272,35 +272,49 @@ const handleGenerate = async () => {
  * @param {string} content - 文案内容
  */
 const generateImages = async (content) => {
-  if (!content) return
+  if (!content) {
+    console.warn('generateImages: 没有文案内容，取消生成图片')
+    return
+  }
   
+  console.log('--- 开始自动生成配套图片流程 ---')
   imageGenerating.value = true
   try {
     // 1. 先将文案建议转化为专业提示词
+    console.log('正在转换文案为提示词...')
     const prompts = await imageGenerationAPI.generatePrompts(content)
     
-    if (prompts.length === 0) {
-      console.warn('未生成有效的图片提示词')
+    if (!prompts || prompts.length === 0) {
+      console.warn('未生成有效的图片提示词，prompts:', prompts)
       return
     }
 
+    console.log(`已获得 ${prompts.length} 个提示词，开始并行请求图片生成接口...`)
+
     // 2. 并行调用图片生成接口
-    const imagePromises = prompts.map(prompt => 
-      imageGenerationAPI.generate({ prompt, size: '2K' })
-    )
+    const imagePromises = prompts.map((prompt, index) => {
+      console.log(`正在请求第 ${index + 1} 张图片, 提示词: ${prompt.substring(0, 50)}...`)
+      return imageGenerationAPI.generate({ prompt, size: '2K' })
+    })
     
     const results = await Promise.all(imagePromises)
+    console.log('图片生成接口原始结果:', results)
+
     generatedImages.value = results.filter(r => r.success).map(r => ({ url: r.url }))
+    console.log('最终生成的图片列表:', generatedImages.value)
     
     if (generatedImages.value.length > 0) {
       message.success(`成功生成 ${generatedImages.value.length} 张配套图片`)
     } else {
-      message.error('图片生成失败')
+      const firstError = results.find(r => !r.success)?.error || '未知错误'
+      message.error(`图片生成失败: ${firstError}`)
     }
   } catch (error) {
-    console.error('图片生成流程失败:', error)
+    console.error('图片生成流程发生严重错误:', error)
+    message.error('图片生成系统异常')
   } finally {
     imageGenerating.value = false
+    console.log('--- 图片生成流程结束 ---')
   }
 }
 
