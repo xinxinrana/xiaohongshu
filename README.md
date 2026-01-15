@@ -1,89 +1,75 @@
-# 小红书文案图文生成工具
+# Nixtio AI 爆款创作工作台
+
+Nixtio AI 是一款专为小红书（Xiaohongshu）创作者打造的智能图文生成工具。通过集成多种 AI 能力与爆款文案框架，帮助创作者一键生成高质量、高转化率的种草笔记。
+
+## 核心功能
+
+- **智能文案生成**：内置 AIDA、SCQA、黄金圈法则等多种爆款营销框架。
+- **MCP 工具集成**：支持联网搜索、笔记爬虫、电商监控及趋势分析，为创作提供实时数据支撑。
+- **实时效果预览**：提供手机与电脑双端预览，所见即所得。
+- **全自动配图**：根据文案内容自动生成高美感度的配图。
+- **质量分析诊断**：AI 自动为生成的内容进行评分并提供优化建议。
 
 ## 项目结构
 
+```text
+.
+├── backend/            # Node.js 后端服务 (API、AI 逻辑)
+├── src/                # Vue 3 前端源码 (工作台界面、组件)
+├── public/             # 静态资源
+├── package.json        # 根目录配置 (前端脚本及多端管理)
+└── vite.config.js      # Vite 配置文件
 ```
-/app/work/
-├── frontend/               # 前端 Vue 3 项目
-│   ├── src/
-│   │   ├── components/    # 公共组件
-│   │   │   ├── KeywordInput.vue      # 关键词输入组件
-│   │   │   ├── FrameworkSelector.vue # 框架选择组件
-│   │   │   ├── ContentEditor.vue     # 内容编辑组件
-│   │   │   ├── QualityAnalysis.vue   # 质量分析组件
-│   │   │   └── Preview.vue           # 预览组件
-│   │   ├── views/         # 页面视图
-│   │   │   ├── Home.vue             # 首页
-│   │   │   ├── Generate.vue         # 生成页
-│   │   │   └── Preview.vue          # 预览页
-│   │   ├── services/      # API 服务
-│   │   │   └── api.js               # API 接口封装
-│   │   ├── utils/         # 工具函数
-│   │   │   └── formatter.js        # 格式化工具
-│   │   ├── App.vue
-│   │   └── main.js
-│   ├── package.json
-│   └── vite.config.js
-│
-├── backend/               # 后端 Node.js 项目
-│   ├── src/
-│   │   ├── controllers/  # 控制器
-│   │   │   ├── frameworkController.js      # 框架控制器
-│   │   │   ├── analysisController.js      # 分析控制器
-│   │   │   ├── generationController.js    # 生成控制器
-│   │   │   └── previewController.js       # 预览控制器
-│   │   ├── services/     # 业务逻辑
-│   │   │   ├── frameworkService.js        # 框架服务
-│   │   │   ├── keywordService.js          # 关键词服务
-│   │   │   ├── generationService.js       # 生成服务
-│   │   │   └── analysisService.js         # 分析服务
-│   │   ├── routes/       # 路由
-│   │   │   └── index.js                # 路由配置
-│   │   ├── utils/        # 工具函数
-│   │   │   └── fileReader.js           # 文件读取工具
-│   │   └── app.js         # App 入口
-│   ├── package.json
-│   └── .env              # 环境变量
-│
-├── frameworks/           # 框架知识库
-│   ├── AIDA模型框架.md
-│   ├── SCQA模型框架.md
-│   ├── 黄金圈法则框架.md
-│   ├── 小红书爆款框架.md
-│   ├── 情感共鸣框架.md
-│   ├── 干货分享框架.md
-│   ├── 种草推荐框架.md
-│   └── 生活方式分享框架.md
-│
-├── package.json
-└── README.md
+
+## 快速启动
+
+项目采用前后端分离架构，您可以通过以下方式启动：
+
+### 1. 自动安装并启动 (推荐)
+
+在项目根目录下运行：
+
+```powershell
+# 一键安装前后端所有依赖
+npm run install:all
+
+# 同时启动前端和后端开发服务器
+npm run dev:all
 ```
+
+### 2. 手动分步启动
+
+**启动后端服务：**
+```powershell
+cd backend
+npm install
+npm run dev
+```
+
+**启动前端界面：**
+```powershell
+# 在新的终端窗口中回到根目录
+npm install
+npm run dev
+```
+
+启动完成后，前端默认运行在 [http://localhost:5173](http://localhost:5173)。
+
+## 如何使用
+
+1. **进入工作台**：启动项目后，在首页点击“开始创作”或直接访问工作台。
+2. **选择/输入主题**：
+   - 您可以从“选品创作中心”直接点击推荐产品。
+   - 也可以在底部输入框输入关键词（如：夏季穿搭、数码测评）。
+3. **配置工具**：在输入框下方选择所需的 MCP 工具（如开启“联网搜索”以获取最新动态）。
+4. **一键生成**：点击发送图标，AI 将开始为您分析行业、撰写文案并生成配图。
+5. **编辑与预览**：
+   - 在左侧编辑器中微调内容。
+   - 在右侧预览窗口查看不同设备下的展示效果。
+   - 参考下方的“质量分析报告”进行针对性优化。
 
 ## 技术栈
 
-- **前端**: Vue 3, Vite, Element Plus
-- **后端**: Node.js, Express, CORS
-- **AI 生成**: 模拟 AI 生成逻辑（可替换为真实 API）
-
-## 安装和启动
-
-### 前端
-```bash
-cd frontend
-pnpm install
-pnpm run dev
-```
-
-### 后端
-```bash
-cd backend
-pnpm install
-node src/app.js
-```
-
-## API 端点
-
-- `GET /api/frameworks` - 获取所有框架
-- `POST /api/analyze` - 分析关键词
-- `POST /api/generate` - 生成内容
-- `POST /api/generate/analysis` - 生成质量分析
+- **前端**：Vue 3, Vite, Naive UI, Axios
+- **后端**：Node.js, Express
+- **图标**：@vicons/antd (Ant Design Icons)

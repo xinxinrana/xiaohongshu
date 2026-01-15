@@ -10,107 +10,87 @@
 
 
 <template>
-  <n-card title="输入关键词" size="large" hoverable>
-    <template #header-extra>
-      <n-icon size="24" color="#ff2442">
-        <svg viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
-          <path fill="currentColor" d="M512 64C264.6 64 64 264.6 64 512s200.6 448 448 448 448-200.6 448-448S759.4 64 512 64zm0 820c-205.4 0-372-166.6-372-372s166.6-372 372-372 372 166.6 372 372-166.6 372-372 372z"/>
-        </svg>
-      </n-icon>
-    </template>
-    
-    <div class="input-wrapper">
+  <div v-if="visible" class="pill-input-wrapper" :class="{ 'with-recommendations': showQuickKeywords }">
+    <div class="input-main-pill">
+      <n-button quaternary circle class="add-btn">
+        <template #icon><n-icon><plus-outlined /></n-icon></template>
+      </n-button>
+      
       <n-input
         v-model:value="keywords"
-        type="textarea"
-        placeholder="输入关键词，如：复古穿搭、夏日探店、职场成长..."
-        size="large"
-        :autosize="{ minRows: 2, maxRows: 4 }"
-        :loading="analyzing"
-        clearable
-        @input="handleInput"
-        @keyup.enter.ctrl="handleAnalyze"
+        type="text"
+        placeholder="输入关键词或粘贴链接，AI 为您一键创作..."
+        :bordered="false"
+        class="main-input"
+        @keyup.enter="handleAnalyze"
       />
-      <n-button
-        class="voice-btn"
-        quaternary
-        circle
-        size="small"
-        @click="message.info('语音识别功能开发中...')"
-      >
-        <template #icon>
-          <n-icon><audio-outlined /></n-icon>
-        </template>
-      </n-button>
+
+      <div class="input-actions">
+        <n-button quaternary circle @click="showQuickKeywords = !showQuickKeywords" :active="showQuickKeywords">
+          <template #icon><n-icon><appstore-outlined /></n-icon></template>
+        </n-button>
+        <n-button quaternary circle @click="message.info('语音识别功能开发中...')">
+          <template #icon><n-icon><audio-outlined /></n-icon></template>
+        </n-button>
+        <n-button type="primary" circle class="send-btn" @click="handleAnalyze" :loading="analyzing">
+          <template #icon><n-icon><arrow-up-outlined /></n-icon></template>
+        </n-button>
+      </div>
     </div>
-    
-    <n-space vertical class="mt-4" v-if="showQuickKeywords">
-      <div class="tool-options">
-        <n-text type="info" class="tool-label">启用第三方工具：</n-text>
-        <n-space>
-          <n-checkbox default-checked label="联网搜索" />
-          <n-checkbox default-checked label="小红书数据抓取" />
-          <n-checkbox default-checked label="电商价格监控" />
-          <n-checkbox default-checked label="市场趋势分析" />
-          <n-checkbox label="竞对账号跟踪" />
-          <n-checkbox label="本地文档分析" />
+
+    <!-- MCP 工具选择区 -->
+    <transition name="fade-slide">
+      <div v-if="showQuickKeywords" class="recommendations-area">
+        <n-space :size="8">
+          <n-button
+            v-for="tag in hotKeywords"
+            :key="tag.key"
+            round
+            size="small"
+            :type="activeTools.includes(tag.key) ? 'primary' : 'default'"
+            :secondary="!activeTools.includes(tag.key)"
+            strong
+            class="recommend-btn"
+            @click="addKeyword(tag)"
+          >
+            <template #icon>
+              <n-icon><component :is="tag.icon" /></n-icon>
+            </template>
+            {{ tag.label }}
+          </n-button>
         </n-space>
       </div>
-      <n-text type="info">热门关键词推荐</n-text>
-      <n-space>
-        <n-tag
-          v-for="tag in hotKeywords"
-          :key="tag"
-          round
-          checkable
-          type="info"
-          size="medium"
-          @click="addKeyword(tag)"
-        >
-          {{ tag }}
-        </n-tag>
-      </n-space>
-    </n-space>
-
-    <!-- 新增：特殊要求输入 -->
-    <n-collapse class="mt-4">
-      <n-collapse-item title="特殊要求 (可选)" name="special">
-        <n-input
-          v-model:value="specialRequirements"
-          type="textarea"
-          placeholder="例如：必须包含价格、避免使用口语化表达、增加互动问题、指定人设等..."
-          size="medium"
-          :autosize="{ minRows: 2, maxRows: 3 }"
-        />
-      </n-collapse-item>
-    </n-collapse>
+    </transition>
     
-    <template #footer>
-      <n-button
-        type="primary"
-        size="large"
-        @click="handleAnalyze"
-        :loading="analyzing"
-        block
-        strong
-      >
-        <template #icon>
-          <n-icon>
-            <svg viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
-              <path fill="currentColor" d="M909.6 854.5L649.9 594.8C690.2 542.7 712 479 712 412c0-80.2-31.3-155.4-87.9-212.1-56.6-56.7-132-87.9-212.1-87.9s-155.5 31.3-212.1 87.9C143.2 256.5 112 331.8 112 412c0 80.1 31.3 155.5 87.9 212.1C256.5 680.8 331.8 712 412 712c67 0 130.6-21.8 182.7-62l259.7 259.6a8.2 8.2 0 0011.6 0l43.6-43.5a8.2 8.2 0 000-11.6zM570.4 570.4C528 612.7 471.8 636 412 636s-116-23.3-158.4-65.6C211.3 528 188 471.8 188 412s23.3-116.5 65.6-158.8c42.3-42.4 98.6-65.8 158.4-65.8s116.1 23.4 158.4 65.8C612.7 295.5 636 351.8 636 412s-23.3 116.5-65.6 158.4z"/>
-            </svg>
-          </n-icon>
-        </template>
-        分析并生成内容
-      </n-button>
-    </template>
-  </n-card>
+    <!-- 隐藏按钮 -->
+    <div class="hide-trigger" @click="visible = false">
+      <n-icon><down-outlined /></n-icon>
+    </div>
+  </div>
+  
+  <div v-else class="show-trigger-btn" @click="visible = true">
+    <n-button circle type="primary" secondary>
+      <template #icon><n-icon><up-outlined /></n-icon></template>
+    </n-button>
+  </div>
 </template>
 
 <script setup>
-import { ref, watch } from 'vue'
+import { ref, watch, h } from 'vue'
 import { useMessage } from 'naive-ui'
-import { AudioOutlined } from '@vicons/antd'
+import { 
+  AudioOutlined, 
+  PlusOutlined, 
+  ArrowUpOutlined, 
+  AppstoreOutlined,
+  SearchOutlined,
+  GlobalOutlined,
+  CloudServerOutlined,
+  LineChartOutlined,
+  ShoppingOutlined,
+  DownOutlined,
+  UpOutlined
+} from '@vicons/antd'
 
 const props = defineProps({
   analyzing: {
@@ -123,39 +103,30 @@ const emit = defineEmits(['analyzed'])
 const message = useMessage()
 
 const keywords = ref('')
-const specialRequirements = ref('')
 const showQuickKeywords = ref(true)
-
-const handleInput = (val) => {
-  keywords.value = val
-}
+const visible = ref(true)
 
 const hotKeywords = [
-  '学习方法',
-  '好物推荐',
-  '生活方式',
-  '情感共鸣',
-  '干货分享',
-  '种草',
-  '技巧',
-  '教程'
+  { label: '联网搜索', icon: GlobalOutlined, key: 'search' },
+  { label: '笔记爬虫', icon: CloudServerOutlined, key: 'crawler' },
+  { label: '电商监控', icon: ShoppingOutlined, key: 'monitor' },
+  { label: '趋势分析', icon: LineChartOutlined, key: 'trend' }
 ]
 
-// 监听关键词变化，自动隐藏推荐标签
-watch(keywords, (newValue) => {
-  if (newValue && newValue.trim()) {
-    showQuickKeywords.value = false
+const activeTools = ref(['search', 'crawler'])
+
+const toggleTool = (key) => {
+  const index = activeTools.value.indexOf(key)
+  if (index > -1) {
+    activeTools.value.splice(index, 1)
   } else {
-    showQuickKeywords.value = true
+    activeTools.value.push(key)
   }
-})
+}
 
 const addKeyword = (tag) => {
-  if (keywords.value) {
-    keywords.value += ', ' + tag
-  } else {
-    keywords.value = tag
-  }
+  // 不再直接替换关键词，而是切换工具状态
+  toggleTool(tag.key)
 }
 
 const handleAnalyze = async () => {
@@ -166,17 +137,12 @@ const handleAnalyze = async () => {
   
   emit('analyzed', {
     keywords: keywords.value,
-    specialRequirements: specialRequirements.value
+    tools: activeTools.value
   })
 }
 
-/**
- * 设置输入框内容
- * @param {Object} data 包含关键词和特殊要求的对象
- */
 const setValues = (data) => {
   keywords.value = data.keywords || ''
-  specialRequirements.value = data.specialRequirements || ''
 }
 
 defineExpose({
@@ -185,39 +151,110 @@ defineExpose({
 </script>
 
 <style scoped>
-.input-wrapper {
+.pill-input-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
   position: relative;
 }
 
-.voice-btn {
+.input-main-pill {
+  width: 100%;
+  background: white;
+  border-radius: 100px;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  padding: 0 8px 0 16px;
+  border: 1px solid rgba(0,0,0,0.05);
+  transition: all 0.3s ease;
+}
+
+.input-main-pill:focus-within {
+  border-color: #3b82f6;
+  box-shadow: 0 10px 30px rgba(59, 130, 246, 0.1);
+}
+
+.main-input {
+  flex: 1;
+  font-size: 16px;
+}
+
+.main-input :deep(.n-input__placeholder) {
+  color: #94a3b8;
+}
+
+.input-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.send-btn {
+  width: 44px !important;
+  height: 44px !important;
+  background: #1e293b !important;
+}
+
+.tools-area, .recommendations-area {
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(10px);
+  padding: 8px 20px;
+  border-radius: 100px;
+  border: 1px solid rgba(0,0,0,0.02);
+}
+
+.recommend-btn {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  padding: 0 16px !important;
+}
+
+.recommend-btn:not(.n-button--primary-type) {
+  background: #1e293b !important;
+  color: white !important;
+  border: none !important;
+}
+
+.recommend-btn.n-button--primary-type {
+  background: #3b82f6 !important;
+  color: white !important;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+.hide-trigger {
   position: absolute;
-  right: 12px;
-  bottom: 12px;
-  color: #999;
-  transition: all 0.3s;
+  right: -40px;
+  top: 20px;
+  cursor: pointer;
+  color: #94a3b8;
+  opacity: 0;
+  transition: opacity 0.3s;
 }
 
-.voice-btn:hover {
-  color: #ff2442;
-  background: rgba(255, 36, 66, 0.1);
+.pill-input-wrapper:hover .hide-trigger {
+  opacity: 1;
 }
 
-.tool-options {
-  margin-bottom: 8px;
-  padding: 8px 12px;
-  background: rgba(59, 130, 246, 0.05);
-  border-radius: 8px;
-  border: 1px dashed rgba(59, 130, 246, 0.2);
+.show-trigger-btn {
+  position: fixed;
+  bottom: 40px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 100;
 }
 
-.tool-label {
-  font-size: 12px;
-  margin-bottom: 4px;
-  display: block;
+/* 动画 */
+.fade-slide-enter-active, .fade-slide-leave-active {
+  transition: all 0.3s ease;
 }
-
-.mt-4 {
-  margin-top: 16px;
+.fade-slide-enter-from {
+  opacity: 0;
+  transform: translateY(10px);
+}
+.fade-slide-leave-to {
+  opacity: 0;
+  transform: translateY(10px);
 }
 </style>
 

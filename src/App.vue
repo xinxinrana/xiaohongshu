@@ -28,58 +28,61 @@
                 <n-layout has-sider class="main-layout">
                   <n-layout-sider
                     bordered
-                    :collapsed-width="64"
-                    width="260"
-                    show-trigger="bar"
-                    :collapsed="collapsed"
-                    @collapse="collapsed = true"
-                    @expand="collapsed = false"
-                    class="glass-sider"
+                    :collapsed-width="80"
+                    :width="80"
+                    :collapsed="true"
+                    class="glass-sider slim-sidebar"
                   >
-                    <div class="logo-container" @click="showLanding = true" style="cursor: pointer;">
-                      <div class="logo-icon">
-                        <n-icon size="32" color="#ff4d4f">
+                    <div class="logo-container" @click="showLanding = true">
+                      <div class="logo-icon-mini">
+                        <n-icon size="24" color="#ff4d4f">
                           <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                             <path fill="currentColor" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm0-14c-3.31 0-6 2.69-6 6s2.69 6 6 6 6-2.69 6-6-2.69-6-6-6z"/>
                           </svg>
                         </n-icon>
                       </div>
-                      <span v-if="!collapsed" class="logo-text">RedNote AI</span>
                     </div>
-                    <n-menu
-                      :collapsed="collapsed"
-                      :collapsed-width="64"
-                      :collapsed-icon-size="22"
-                      :options="menuOptions"
-                      :value="activeKey"
-                      @update:value="handleMenuSelect"
-                      class="side-menu"
-                    />
+                    
+                    <div class="sidebar-actions">
+                      <n-button quaternary circle size="large" @click="activeKey = 'generate'" :active="activeKey === 'generate'">
+                        <template #icon><n-icon size="24"><thunderbolt-outlined /></n-icon></template>
+                      </n-button>
+                      <n-button quaternary circle size="large" @click="activeKey = 'batch'" :active="activeKey === 'batch'">
+                        <template #icon><n-icon size="24"><cloud-download-outlined /></n-icon></template>
+                      </n-button>
+                      <n-button quaternary circle size="large" @click="activeKey = 'knowledge'" :active="activeKey === 'knowledge'">
+                        <template #icon><n-icon size="24"><book-outlined /></n-icon></template>
+                      </n-button>
+                      <n-button quaternary circle size="large" @click="activeKey = 'analysis'" :active="activeKey === 'analysis'">
+                        <template #icon><n-icon size="24"><bar-chart-outlined /></n-icon></template>
+                      </n-button>
+                    </div>
+
+                    <div class="sidebar-bottom">
+                      <n-button quaternary circle size="large" @click="activeKey = 'settings'">
+                        <template #icon><n-icon size="24"><setting-outlined /></n-icon></template>
+                      </n-button>
+                      <n-avatar round size="small" src="/2026115204749.png" class="sidebar-avatar" />
+                    </div>
                   </n-layout-sider>
+                  
                   <n-layout class="content-layout">
-                    <n-layout-header class="glass-header">
+                    <n-layout-header class="glass-header transparent-header">
                       <div class="header-content">
                         <div class="header-left">
-                          <n-breadcrumb v-if="!collapsed">
-                            <n-breadcrumb-item>工作台</n-breadcrumb-item>
-                            <n-breadcrumb-item>{{ currentTitle }}</n-breadcrumb-item>
-                          </n-breadcrumb>
+                        </div>
+                        <div class="header-center">
                         </div>
                         <div class="header-right">
-                          <n-space align="center" :size="20">
-                            <n-button quaternary circle>
-                              <template #icon><n-icon><search-outlined /></n-icon></template>
-                            </n-button>
-                            <n-avatar
-                              round
-                              size="medium"
-                              src="/2026115204749.png"
-                            />
-                          </n-space>
+                          <n-button round type="primary" color="#1e1b4b" size="small">
+                            <template #icon><n-icon><sparkles-icon /></n-icon></template>
+                            Upgrade
+                          </n-button>
                         </div>
                       </div>
                     </n-layout-header>
-                    <n-layout-content content-style="padding: 24px;" :native-scrollbar="false">
+                    
+                    <n-layout-content class="workbench-content" :native-scrollbar="false">
                       <div class="page-transition-container">
                         <transition name="fade-slide" mode="out-in">
                           <div :key="activeKey" class="view-wrapper">
@@ -132,8 +135,14 @@ import {
   SettingOutlined,
   BarChartOutlined,
   SearchOutlined,
-  CloudDownloadOutlined
+  CloudDownloadOutlined,
+  DownOutlined
 } from '@vicons/antd'
+
+// 自定义图标组件
+const SparklesIcon = () => h('svg', { viewBox: '0 0 24 24', width: '16', height: '16' }, [
+  h('path', { fill: 'currentColor', d: 'M19 9l1.25-2.75L23 5l-2.75-1.25L19 1l-1.25 2.75L15 5l2.75 1.25L19 9zm-7.5.5L9 4 6.5 9.5 1 12l5.5 2.5L9 20l2.5-5.5L17 12l-5.5-2.5zM19 15l-1.25 2.75L15 19l2.75 1.25L19 23l1.25-2.75L23 19l-2.75-1.25L19 15z' })
+])
 import GeneratePage from './views/Generate.vue'
 import BatchGeneratePage from './views/BatchGenerate.vue'
 import KnowledgeBasePage from './views/KnowledgeBase.vue'
@@ -329,51 +338,57 @@ body {
   z-index: 1;
 }
 
-.glass-sider {
-  background: rgba(255, 255, 255, 0.4) !important;
+.glass-sider.slim-sidebar {
+  background: rgba(255, 255, 255, 0.5) !important;
   backdrop-filter: blur(20px);
   border-right: 1px solid rgba(255, 255, 255, 0.3) !important;
-}
-
-.glass-header {
-  height: 72px;
-  background: rgba(255, 255, 255, 0.4) !important;
-  backdrop-filter: blur(20px);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.3) !important;
   display: flex;
+  flex-direction: column;
   align-items: center;
-  padding: 0 32px;
+  padding: 24px 0;
 }
 
 .logo-container {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  padding: 32px 24px;
+  margin-bottom: 40px;
+  cursor: pointer;
 }
 
-.logo-icon {
-  width: 40px;
-  height: 40px;
+.logo-icon-mini {
+  width: 44px;
+  height: 44px;
   background: white;
-  border-radius: 12px;
+  border-radius: 14px;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 4px 12px rgba(255, 77, 79, 0.15);
+  box-shadow: 0 4px 12px rgba(255, 77, 79, 0.1);
 }
 
-.logo-text {
-  font-size: 20px;
-  font-weight: 700;
-  background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  letter-spacing: -0.5px;
+.sidebar-actions {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  align-items: center;
 }
 
-.side-menu {
-  padding: 0 12px;
+.sidebar-bottom {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  align-items: center;
+}
+
+.sidebar-avatar {
+  border: 2px solid white;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+}
+
+.glass-header.transparent-header {
+  height: 64px;
+  background: transparent !important;
+  border-bottom: none !important;
+  backdrop-filter: none !important;
 }
 
 .header-content {
@@ -381,15 +396,23 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  padding: 0 40px;
 }
 
-.header-left {
-  display: flex;
-  align-items: center;
+.header-center {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
 }
 
-.content-layout {
+.workbench-content {
+  padding: 0 40px 40px 40px !important;
   background: transparent !important;
+}
+
+.view-wrapper {
+  max-width: 1200px;
+  margin: 0 auto;
 }
 
 /* 页面切换动画 */

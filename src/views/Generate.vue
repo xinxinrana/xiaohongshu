@@ -1,41 +1,63 @@
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 <template>
   <div class="generate-container">
     <div class="main-content-scroll">
-      <n-space vertical :size="24" class="generate-main">
-        <!-- 1. 顶部操作区 -->
-        <div class="top-actions">
-          <n-button @click="showHistory = true" secondary strong round type="info">
-            <template #icon><n-icon><history-outlined /></n-icon></template>
-            历史记录
-          </n-button>
+      <div class="generate-main">
+        <!-- 初始欢迎与功能区域 -->
+        <div v-if="!generatedContent && !generating" class="welcome-dashboard">
+          <div class="greeting-section">
+            <h1 class="greeting-text">你好 Nixtio，<br/>今天准备好创造爆款了吗？</h1>
+            <div class="robot-avatar">
+              <img src="/2026115204749.png" alt="AI Robot" class="robot-img" />
+              <div class="robot-speech">
+                <n-text depth="3">你好呀！👋<br/>需要灵感吗？</n-text>
+              </div>
+            </div>
+          </div>
+
+          <!-- 功能导向卡片 -->
+          <div class="feature-cards">
+            <div class="feature-card-item">
+              <div class="card-icon yellow">
+                <n-icon size="24"><block-outlined /></n-icon>
+              </div>
+              <h3 class="card-title">激发灵感，提供反馈，并同步管理所有创作任务。</h3>
+              <n-text depth="3" class="card-tag">快速开始</n-text>
+            </div>
+            
+            <div class="feature-card-item">
+              <div class="card-icon colorful">
+                <n-icon size="24" color="#10b981"><team-outlined /></n-icon>
+              </div>
+              <h3 class="card-title">无缝连接，分享创意，轻松达成团队协作目标。</h3>
+              <n-text depth="3" class="card-tag">团队协作</n-text>
+            </div>
+
+            <div class="feature-card-item">
+              <div class="card-icon blue">
+                <n-icon size="24"><calendar-outlined /></n-icon>
+              </div>
+              <h3 class="card-title">高效规划时间，明确创作优先级，保持专注。</h3>
+              <n-text depth="3" class="card-tag">计划管理</n-text>
+            </div>
+          </div>
+
+          <!-- 原有核心功能：选品推荐 -->
+          <div class="original-function-section">
+            <div class="section-divider">
+              <n-divider title-placement="left">选品创作中心</n-divider>
+            </div>
+            <ProductPromotion @select="handleProductSelect" />
+          </div>
         </div>
 
-        <!-- 选品推荐区 -->
-        <ProductPromotion @select="handleProductSelect" />
-
-        <!-- 2. 关键词输入区 -->
-        <KeywordInput ref="keywordInputRef" @analyzed="handleQuickGenerate" :analyzing="generating" />
-        
-        <!-- 3. 生成结果展示区 -->
-        <n-space vertical :size="24" v-if="generatedContent || generating">
+        <n-space vertical :size="24">
           <!-- 生成过程状态展示 -->
           <n-card v-if="generating" class="processing-card glass-card">
             <n-space vertical :size="12">
-              <n-text strong class="processing-title">AI 正在深度创作中...</n-text>
+              <div class="loading-header" style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
+                <n-spin size="small" />
+                <n-text strong class="processing-title">正在为您打造爆款内容...</n-text>
+              </div>
               <n-timeline>
                 <n-timeline-item
                   v-for="(log, index) in processingLogs"
@@ -55,7 +77,7 @@
             </n-space>
           </n-card>
 
-          <!-- 编辑器区域 -->
+          <!-- 编辑器区域 (原功能) -->
           <ContentEditor
             v-if="generatedContent"
             :content="generatedContent"
@@ -64,21 +86,40 @@
             @regenerate="handleRegenerate"
             @preview="handlePreview"
             @content-change="handleContentChange"
-            class="glass-card"
+            class="editor-section"
           />
           
-          <!-- 质量分析 -->
+          <!-- 质量分析 (原功能) -->
           <QualityAnalysis
             v-if="qualityAnalysis"
             :analysis="qualityAnalysis"
-            class="glass-card"
+            class="analysis-section"
           />
         </n-space>
-      </n-space>
+      </div>
     </div>
 
-    <!-- 右侧悬浮预览区 -->
-    <div class="preview-sidebar" :class="[previewDevice, { 'has-content': generatedContent || editedContent }]">
+    <!-- 底部固定输入区 -->
+    <div class="bottom-input-container" :style="{ right: currentSidebarWidth + 'px' }">
+      <div class="pro-tip">
+        <n-icon size="14" color="#8b5cf6"><star-outlined /></n-icon>
+        <n-text depth="3">解锁更多专业功能</n-text>
+      </div>
+      
+      <KeywordInput 
+        ref="keywordInputRef" 
+        @analyzed="handleQuickGenerate" 
+        :analyzing="generating"
+        class="floating-input-bar"
+      />
+    </div>
+
+    <!-- 右侧悬浮预览区 - 仅在生成中或生成后展示 -->
+    <div 
+      v-if="generatedContent || generating"
+      class="preview-sidebar" 
+      :class="[previewDevice, { 'has-content': generatedContent || editedContent }]"
+    >
       <div class="sidebar-header">
         <n-text strong>实时效果预览</n-text>
         <n-radio-group v-model:value="previewDevice" size="small" type="button">
@@ -139,7 +180,11 @@ import { useMessage } from 'naive-ui'
 import { 
   HistoryOutlined, 
   FileTextOutlined, 
-  DeleteOutlined 
+  DeleteOutlined,
+  BlockOutlined,
+  CalendarOutlined,
+  StarOutlined,
+  TeamOutlined
 } from '@vicons/antd'
 import { generationAPI, imageGenerationAPI } from '../services/api'
 import { historyService } from '../services/history'
@@ -165,6 +210,13 @@ const currentKeywords = ref('')
 const currentSpecialRequirements = ref('')
 const previewDevice = ref('mobile')
 const showHistory = ref(false)
+
+// 计算当前侧边栏宽度
+const currentSidebarWidth = computed(() => {
+  if (!generatedContent.value && !generating.value) return 0
+  return previewDevice.value === 'desktop' ? 800 : 400
+})
+
 const historyList = ref([])
 const keywordInputRef = ref(null)
 
@@ -375,51 +427,221 @@ const formatDate = (ts) => {
 </script>
 
 <style scoped>
+/* 整体容器 */
 .generate-container {
   display: flex;
-  height: calc(100vh - 120px);
-  gap: 24px;
+  height: 100%;
   position: relative;
+  overflow: hidden;
+  background-color: #f8fafc;
 }
 
 .main-content-scroll {
   flex: 1;
   overflow-y: auto;
-  padding-right: 12px;
+  padding: 40px 40px 160px 40px;
+  scrollbar-width: none;
+}
+
+.main-content-scroll::-webkit-scrollbar {
+  display: none;
 }
 
 .generate-main {
-  max-width: 900px;
+  max-width: 1000px;
   margin: 0 auto;
 }
 
-.top-actions {
-  display: flex;
-  justify-content: flex-end;
-  margin-bottom: -12px;
+/* 欢迎面板样式 */
+.welcome-dashboard {
+  margin-bottom: 40px;
+  animation: fadeIn 0.8s ease-out;
 }
 
-.preview-sidebar {
-  width: 420px;
+.greeting-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-bottom: 48px;
+  padding: 0 10px;
+}
+
+.greeting-text {
+  font-size: 48px;
+  line-height: 1.1;
+  font-weight: 800;
+  color: #0f172a;
+  letter-spacing: -0.04em;
+  margin: 0;
+}
+
+.robot-avatar {
+  position: relative;
+  width: 100px;
+  height: 100px;
+}
+
+.robot-img {
+  width: 100%;
   height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+  border: 4px solid white;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+.robot-speech {
+  position: absolute;
+  top: 10px;
+  left: -120px;
+  background: white;
+  padding: 10px 14px;
+  border-radius: 16px 16px 2px 16px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+  font-size: 12px;
+  white-space: nowrap;
+  border: 1px solid rgba(0,0,0,0.03);
+  z-index: 10;
+}
+
+/* 功能卡片 */
+.feature-cards {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  margin-bottom: 60px;
+}
+
+.feature-card-item {
+  background: white;
+  padding: 24px;
+  border-radius: 20px;
   display: flex;
   flex-direction: column;
-  background: rgba(255, 255, 255, 0.6);
-  backdrop-filter: blur(20px);
-  border-radius: 20px;
-  border: 1px solid rgba(255, 255, 255, 0.4);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.05);
-  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-  overflow: hidden;
+  gap: 16px;
+  border: 1px solid rgba(0,0,0,0.04);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.01);
+  transition: all 0.3s ease;
+}
+
+.feature-card-item:hover {
+  box-shadow: 0 12px 24px rgba(0,0,0,0.04);
+  transform: translateY(-2px);
+}
+
+.card-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.card-icon.yellow { background: #fef9c3; color: #ca8a04; }
+.card-icon.blue { background: #dbeafe; color: #2563eb; }
+.card-icon.colorful { background: #f1f5f9; }
+
+.card-title {
+  font-size: 16px;
+  line-height: 1.5;
+  font-weight: 600;
+  color: #334155;
+  margin: 0;
+  flex: 1;
+}
+
+.card-tag {
+  font-size: 12px;
+  font-weight: 600;
+  color: #94a3b8;
+}
+
+/* 原有功能区 */
+.original-function-section {
+  background: white;
+  border-radius: 24px;
+  padding: 24px;
+  border: 1px solid rgba(0,0,0,0.04);
+}
+
+.section-divider {
+  margin-bottom: 20px;
+}
+
+/* 状态与编辑器区域 */
+.editor-section, .analysis-section, .processing-card {
+  background: white !important;
+  border-radius: 20px !important;
+  border: 1px solid rgba(0,0,0,0.05) !important;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.02) !important;
+}
+
+/* 底部输入区 - 悬浮在最底层且始终可见 */
+.bottom-input-container {
+  position: fixed; /* 使用 fixed 确保相对于窗口定位 */
+  bottom: 0;
+  left: 80px; /* 避开左侧瘦身侧边栏宽度 */
+  right: 0;
+  padding: 10px 40px 30px 40px;
+  background: linear-gradient(to top, #f8fafc 85%, rgba(248, 250, 252, 0));
+  z-index: 1000; /* 确保在最上层 */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  pointer-events: none; /* 允许点击穿透背景区域 */
+  transition: right 0.5s ease-out;
+}
+
+.bottom-input-container > * {
+  pointer-events: auto; /* 恢复子元素的交互 */
+}
+
+.pro-tip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  width: 100%;
+  max-width: 800px;
+  padding: 0 20px;
+}
+
+.powered-by {
+  margin-left: auto;
+  color: #94a3b8;
+}
+
+.floating-input-bar {
+  width: 100%;
+  max-width: 800px;
+}
+
+/* 预览侧边栏 */
+.preview-sidebar {
+  width: 400px;
+  height: 100%;
+  background: white;
+  border-left: 1px solid #e2e8f0;
+  display: flex;
+  flex-direction: column;
+  transition: width 0.3s ease;
+  animation: slideInRight 0.5s ease-out;
+}
+
+@keyframes slideInRight {
+  from { transform: translateX(100%); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
 }
 
 .preview-sidebar.desktop {
-  width: 850px;
+  width: 800px;
 }
 
 .sidebar-header {
   padding: 16px 20px;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  border-bottom: 1px solid #f1f5f9;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -431,29 +653,9 @@ const formatDate = (ts) => {
   padding: 20px;
 }
 
-.empty-preview {
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.glass-card {
-  background: rgba(255, 255, 255, 0.7) !important;
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.5) !important;
-  border-radius: 16px !important;
-}
-
-.processing-card {
-  border: 1px solid #bae7ff !important;
-}
-
-.processing-title {
-  font-size: 18px;
-  color: #1890ff;
-  display: block;
-  margin-bottom: 8px;
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 </style>
 
