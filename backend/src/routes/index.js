@@ -13,6 +13,7 @@ router.get('/frameworks/:name', frameworkController.getFramework)
 router.post('/analyze', analysisController.analyzeKeyword)
 router.post('/generate', generationController.generateContent)
 router.post('/generate/analysis', generationController.generateAnalysis)
+router.get('/proxy-image', generationController.proxyImage)
 
 export default router
 

@@ -11,49 +11,86 @@
       <n-notification-provider>
         <n-loading-bar-provider>
           <message-api />
-          <n-config-provider :theme="theme">
-            <n-layout has-sider>
-              <n-layout-sider
-                bordered
-                :collapsed-width="64"
-                width="240"
-                show-trigger="bar"
-                :collapsed="collapsed"
-              >
-                <div class="logo">
-                  <n-icon size="40" color="#ff2442">
-                    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                      <path fill="currentColor" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm0-14c-3.31 0-6 2.69-6 6s2.69 6 6 6 6-2.69 6-6-2.69-6-6-6z"/>
-                    </svg>
-                  </n-icon>
-                  <span v-if="!collapsed">小红书生成器</span>
-                </div>
-                <n-menu
-                  :collapsed="collapsed"
+          <n-config-provider :theme="theme" :theme-overrides="themeOverrides">
+            <div class="app-container">
+              <!-- 背景眩光装饰 -->
+              <div class="glow-bg">
+                <div class="glow-1"></div>
+                <div class="glow-2"></div>
+                <div class="glow-3"></div>
+              </div>
+              
+              <n-layout has-sider class="main-layout">
+                <n-layout-sider
+                  bordered
                   :collapsed-width="64"
-                  :collapsed-icon-size="22"
-                  :options="menuOptions"
-                  :value="activeKey"
-                  @update:value="handleMenuSelect"
-                />
-              </n-layout-sider>
-              <n-layout>
-                <n-layout-header bordered style="height: 64px; padding: 24px;">
-                  <div class="header-content">
-                    <h2>小红书文案图文生成工具</h2>
+                  width="260"
+                  show-trigger="bar"
+                  :collapsed="collapsed"
+                  @collapse="collapsed = true"
+                  @expand="collapsed = false"
+                  class="glass-sider"
+                >
+                  <div class="logo-container">
+                    <div class="logo-icon">
+                      <n-icon size="32" color="#ff4d4f">
+                        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                          <path fill="currentColor" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm0-14c-3.31 0-6 2.69-6 6s2.69 6 6 6 6-2.69 6-6-2.69-6-6-6z"/>
+                        </svg>
+                      </n-icon>
+                    </div>
+                    <span v-if="!collapsed" class="logo-text">RedNote AI</span>
                   </div>
-                </n-layout-header>
-                <n-layout-content>
-                  <div class="content">
-                    <generate-page v-if="activeKey === 'generate'" />
-                    <knowledge-base-page v-else-if="activeKey === 'knowledge'" />
-                    <help-page v-else-if="activeKey === 'help'" />
-                    <settings-page v-else-if="activeKey === 'settings'" />
-                    <account-analysis-page v-else-if="activeKey === 'analysis'" />
-                  </div>
-                </n-layout-content>
+                  <n-menu
+                    :collapsed="collapsed"
+                    :collapsed-width="64"
+                    :collapsed-icon-size="22"
+                    :options="menuOptions"
+                    :value="activeKey"
+                    @update:value="handleMenuSelect"
+                    class="side-menu"
+                  />
+                </n-layout-sider>
+                <n-layout class="content-layout">
+                  <n-layout-header class="glass-header">
+                    <div class="header-content">
+                      <div class="header-left">
+                        <n-breadcrumb v-if="!collapsed">
+                          <n-breadcrumb-item>工作台</n-breadcrumb-item>
+                          <n-breadcrumb-item>{{ currentTitle }}</n-breadcrumb-item>
+                        </n-breadcrumb>
+                      </div>
+                      <div class="header-right">
+                        <n-space align="center" :size="20">
+                          <n-button quaternary circle>
+                            <template #icon><n-icon><search-outlined /></n-icon></template>
+                          </n-button>
+                          <n-avatar
+                            round
+                            size="medium"
+                            src="/2026115204749.png"
+                          />
+                        </n-space>
+                      </div>
+                    </div>
+                  </n-layout-header>
+                  <n-layout-content content-style="padding: 24px;" :native-scrollbar="false">
+                    <div class="page-transition-container">
+                      <transition name="fade-slide" mode="out-in">
+                        <div :key="activeKey" class="view-wrapper">
+                          <generate-page v-if="activeKey === 'generate'" />
+                          <batch-generate-page v-else-if="activeKey === 'batch'" />
+                          <knowledge-base-page v-else-if="activeKey === 'knowledge'" />
+                          <help-page v-else-if="activeKey === 'help'" />
+                          <settings-page v-else-if="activeKey === 'settings'" />
+                          <account-analysis-page v-else-if="activeKey === 'analysis'" />
+                        </div>
+                      </transition>
+                    </div>
+                  </n-layout-content>
+                </n-layout>
               </n-layout>
-            </n-layout>
+            </div>
           </n-config-provider>
         </n-loading-bar-provider>
       </n-notification-provider>
@@ -62,24 +99,37 @@
 </template>
 
 <script setup>
-import { ref, h } from 'vue'
+import { ref, h, computed } from 'vue'
 import { 
   NConfigProvider, 
-  darkTheme, 
   lightTheme,
   NMessageProvider,
   NDialogProvider,
   NNotificationProvider,
-  NLoadingBarProvider
+  NLoadingBarProvider,
+  NLayout,
+  NLayoutSider,
+  NLayoutHeader,
+  NLayoutContent,
+  NMenu,
+  NIcon,
+  NBreadcrumb,
+  NBreadcrumbItem,
+  NAvatar,
+  NSpace,
+  NButton
 } from 'naive-ui'
 import { 
   ThunderboltOutlined, 
   FileTextOutlined,
   BookOutlined,
   SettingOutlined,
-  BarChartOutlined
+  BarChartOutlined,
+  SearchOutlined,
+  CloudDownloadOutlined
 } from '@vicons/antd'
 import GeneratePage from './views/Generate.vue'
+import BatchGeneratePage from './views/BatchGenerate.vue'
 import KnowledgeBasePage from './views/KnowledgeBase.vue'
 import HelpPage from './views/Help.vue'
 import SettingsPage from './views/Settings.vue'
@@ -90,11 +140,64 @@ const collapsed = ref(false)
 const activeKey = ref('generate')
 const theme = ref(lightTheme)
 
+/**
+ * Naive UI 全局主题覆盖配置
+ * 定义了符合现代审美的圆角、主色调（淡蓝）和辅助色（微红）
+ */
+const themeOverrides = {
+  common: {
+    primaryColor: '#3b82f6',
+    primaryColorHover: '#60a5fa',
+    primaryColorPressed: '#2563eb',
+    primaryColorSuppl: '#3b82f6',
+    borderRadius: '12px',
+    cardColor: 'rgba(255, 255, 255, 0.7)',
+    modalColor: 'rgba(255, 255, 255, 0.8)',
+    popoverColor: 'rgba(255, 255, 255, 0.9)',
+  },
+  Layout: {
+    siderColor: 'rgba(255, 255, 255, 0.4)',
+    headerColor: 'rgba(255, 255, 255, 0.4)',
+    color: 'transparent'
+  },
+  Menu: {
+    itemHeight: '48px',
+    borderRadius: '8px',
+    itemColorActive: 'rgba(59, 130, 246, 0.1)',
+    itemColorActiveHover: 'rgba(59, 130, 246, 0.15)',
+    itemTextColorActive: '#3b82f6',
+    itemIconColorActive: '#3b82f6'
+  },
+  Card: {
+    borderRadius: '16px',
+    boxShadow: '0 8px 32px 0 rgba(31, 38, 135, 0.07)'
+  },
+  Button: {
+    borderRadiusMedium: '10px',
+    fontWeight: '500'
+  },
+  Input: {
+    borderRadius: '10px'
+  },
+  Scrollbar: {
+    color: 'rgba(0, 0, 0, 0.15)',
+    colorHover: 'rgba(0, 0, 0, 0.25)',
+    width: '6px',
+    height: '6px',
+    borderRadius: '10px'
+  }
+}
+
 const menuOptions = [
   {
     label: '一键生成',
     key: 'generate',
     icon: () => h(ThunderboltOutlined)
+  },
+  {
+    label: '批量生成',
+    key: 'batch',
+    icon: () => h(CloudDownloadOutlined)
   },
   {
     label: '内容知识库',
@@ -118,59 +221,197 @@ const menuOptions = [
   }
 ]
 
+const currentTitle = computed(() => {
+  const option = menuOptions.find(opt => opt.key === activeKey.value)
+  return option ? option.label : ''
+})
+
+/**
+ * 切换菜单处理函数
+ * @param {string} key 选中的菜单项 key
+ */
 const handleMenuSelect = (key) => {
   activeKey.value = key
 }
 </script>
 
 <style>
+/* 全局基础样式 */
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
 }
 
-#app {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  min-height: 100vh;
-  background: #f5f7fa;
+body {
+  overflow: hidden;
 }
 
-.logo {
+#app {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  background: #f0f4f8;
+}
+
+/* 应用容器与背景眩光 */
+.app-container {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  background-color: #f8fafc;
+}
+
+.glow-bg {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.glow-1 {
+  position: absolute;
+  top: -10%;
+  right: -10%;
+  width: 600px;
+  height: 600px;
+  background: radial-gradient(circle, rgba(59, 130, 246, 0.15) 0%, rgba(59, 130, 246, 0) 70%);
+  filter: blur(60px);
+  animation: float 20s infinite alternate;
+}
+
+.glow-2 {
+  position: absolute;
+  bottom: -5%;
+  left: -5%;
+  width: 500px;
+  height: 500px;
+  background: radial-gradient(circle, rgba(255, 77, 79, 0.1) 0%, rgba(255, 77, 79, 0) 70%);
+  filter: blur(50px);
+  animation: float 15s infinite alternate-reverse;
+}
+
+.glow-3 {
+  position: absolute;
+  top: 30%;
+  left: 20%;
+  width: 400px;
+  height: 400px;
+  background: radial-gradient(circle, rgba(59, 130, 246, 0.08) 0%, rgba(59, 130, 246, 0) 70%);
+  filter: blur(40px);
+}
+
+@keyframes float {
+  0% { transform: translate(0, 0) scale(1); }
+  100% { transform: translate(50px, 50px) scale(1.1); }
+}
+
+/* 布局样式重构 */
+.main-layout {
+  height: 100vh;
+  background: transparent !important;
+  z-index: 1;
+}
+
+.glass-sider {
+  background: rgba(255, 255, 255, 0.4) !important;
+  backdrop-filter: blur(20px);
+  border-right: 1px solid rgba(255, 255, 255, 0.3) !important;
+}
+
+.glass-header {
+  height: 72px;
+  background: rgba(255, 255, 255, 0.4) !important;
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.3) !important;
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 24px;
-  font-size: 16px;
-  font-weight: 600;
+  padding: 0 32px;
+}
+
+.logo-container {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 32px 24px;
+}
+
+.logo-icon {
+  width: 40px;
+  height: 40px;
+  background: white;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(255, 77, 79, 0.15);
+}
+
+.logo-text {
+  font-size: 20px;
+  font-weight: 700;
+  background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  letter-spacing: -0.5px;
+}
+
+.side-menu {
+  padding: 0 12px;
 }
 
 .header-content {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.header-left {
   display: flex;
   align-items: center;
-  gap: 16px;
 }
 
-.header-content h2 {
-  margin: 0;
-  font-size: 20px;
-  font-weight: 600;
+.content-layout {
+  background: transparent !important;
 }
 
-.content {
-  padding: 24px;
-  min-height: calc(100vh - 128px);
-}
-
-:deep(.n-layout-sider) {
-  background: white;
+/* 页面切换动画 */
+.fade-slide-enter-active,
+.fade-slide-leave-active {
   transition: all 0.3s ease;
 }
 
-:deep(.n-layout-header) {
-  background: white;
-  border-bottom: 1px solid #f0f0f0;
+.fade-slide-enter-from {
+  opacity: 0;
+  transform: translateY(10px);
+}
+
+.fade-slide-leave-to {
+  opacity: 0;
+  transform: translateY(-10px);
+}
+
+.view-wrapper {
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+/* 全局组件样式优化 */
+.n-card {
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.5) !important;
+}
+
+.n-button {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.n-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
 }
 </style>
 

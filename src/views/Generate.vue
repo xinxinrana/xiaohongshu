@@ -13,94 +13,145 @@
 
 
 <template>
-  <n-space vertical :size="24">
-    <!-- 1. 关键词输入区 - 改为一键生成 -->
-    <KeywordInput @analyzed="handleQuickGenerate" :analyzing="generating" />
-    
-    <!-- 2. 框架选择区 (隐藏或作为高级选项，现在默认不显示) -->
-    <n-collapse v-if="false">
-      <n-collapse-item title="高级选项：手动选择框架" name="advanced">
-        <n-card hoverable class="framework-selection-card">
-          <FrameworkSelector
-            :frameworks="displayFrameworks"
-            v-model:value="selectedFramework"
-            @selected="handleFrameworkSelected"
+  <div class="generate-container">
+    <div class="main-content-scroll">
+      <n-space vertical :size="24" class="generate-main">
+        <!-- 1. 顶部操作区 -->
+        <div class="top-actions">
+          <n-button @click="showHistory = true" secondary strong round type="info">
+            <template #icon><n-icon><history-outlined /></n-icon></template>
+            历史记录
+          </n-button>
+        </div>
+
+        <!-- 选品推荐区 -->
+        <ProductPromotion @select="handleProductSelect" />
+
+        <!-- 2. 关键词输入区 -->
+        <KeywordInput ref="keywordInputRef" @analyzed="handleQuickGenerate" :analyzing="generating" />
+        
+        <!-- 3. 生成结果展示区 -->
+        <n-space vertical :size="24" v-if="generatedContent || generating">
+          <!-- 生成过程状态展示 -->
+          <n-card v-if="generating" class="processing-card glass-card">
+            <n-space vertical :size="12">
+              <n-text strong class="processing-title">AI 正在深度创作中...</n-text>
+              <n-timeline>
+                <n-timeline-item
+                  v-for="(log, index) in processingLogs"
+                  :key="index"
+                  :type="log.type"
+                  :title="log.title"
+                  :content="log.content"
+                  :time="log.time"
+                />
+              </n-timeline>
+              <n-progress
+                type="line"
+                :percentage="generationProgress"
+                :indicator-placement="'inside'"
+                processing
+              />
+            </n-space>
+          </n-card>
+
+          <!-- 编辑器区域 -->
+          <ContentEditor
+            v-if="generatedContent"
+            :content="generatedContent"
+            :images="generatedImages"
+            :image-loading="imageGenerating"
+            @regenerate="handleRegenerate"
+            @preview="handlePreview"
+            @content-change="handleContentChange"
+            class="glass-card"
           />
-        </n-card>
-      </n-collapse-item>
-    </n-collapse>
-    
-    <!-- 3. 生成结果展示区 -->
-    <n-space vertical :size="24" v-if="generatedContent || generating">
-      <!-- 生成过程状态展示 -->
-      <n-card v-if="generating" class="processing-card">
-        <n-space vertical :size="12">
-          <n-text strong class="processing-title">AI 正在深度创作中...</n-text>
-          <n-timeline>
-            <n-timeline-item
-              v-for="(log, index) in processingLogs"
-              :key="index"
-              :type="log.type"
-              :title="log.title"
-              :content="log.content"
-              :time="log.time"
-            />
-          </n-timeline>
-          <n-progress
-            type="line"
-            :percentage="generationProgress"
-            :indicator-placement="'inside'"
-            processing
+          
+          <!-- 质量分析 -->
+          <QualityAnalysis
+            v-if="qualityAnalysis"
+            :analysis="qualityAnalysis"
+            class="glass-card"
           />
         </n-space>
-      </n-card>
+      </n-space>
+    </div>
 
-      <ContentEditor
-        v-if="generatedContent"
-        :content="generatedContent"
-        :images="generatedImages"
-        :image-loading="imageGenerating"
-        @regenerate="handleRegenerate"
-        @preview="handlePreview"
-        @content-change="handleContentChange"
-      />
-      
-      <QualityAnalysis
-        v-if="qualityAnalysis"
-        :analysis="qualityAnalysis"
-      />
-      
-      <Preview
-        v-if="showPreview"
-        :content="editedContent"
-        :images="generatedImages"
-      />
-    </n-space>
-  </n-space>
+    <!-- 右侧悬浮预览区 -->
+    <div class="preview-sidebar" :class="[previewDevice, { 'has-content': generatedContent || editedContent }]">
+      <div class="sidebar-header">
+        <n-text strong>实时效果预览</n-text>
+        <n-radio-group v-model:value="previewDevice" size="small" type="button">
+          <n-radio-button value="mobile">手机</n-radio-button>
+          <n-radio-button value="desktop">电脑</n-radio-button>
+        </n-radio-group>
+      </div>
+      <div class="sidebar-content">
+        <Preview
+          v-if="generatedContent || editedContent"
+          :content="editedContent || generatedContent"
+          :images="generatedImages"
+          :mode="previewDevice"
+          compact
+        />
+        <div v-else class="empty-preview">
+          <n-empty description="生成内容后在此实时预览效果" />
+        </div>
+      </div>
+    </div>
+
+    <!-- 历史记录侧边栏 -->
+    <n-drawer v-model:show="showHistory" :width="400" placement="left" class="history-drawer">
+      <n-drawer-content title="生成历史" closable>
+        <n-list hoverable clickable>
+          <n-list-item v-for="item in historyList" :key="item.id" @click="loadHistory(item)">
+            <template #prefix>
+              <n-icon size="24" color="#3b82f6"><file-text-outlined /></n-icon>
+            </template>
+            <n-thing :title="item.keywords || '无标题生成'">
+              <template #description>
+                <n-text depth="3">{{ formatDate(item.timestamp) }}</n-text>
+              </template>
+              <n-ellipsis :line-clamp="1" :tooltip="false">
+                {{ typeof item.content === 'string' ? item.content : item.content?.content }}
+              </n-ellipsis>
+            </n-thing>
+            <template #suffix>
+              <n-button size="small" quaternary circle type="error" @click.stop="deleteHistory(item.id)">
+                <template #icon><n-icon><delete-outlined /></n-icon></template>
+              </n-button>
+            </template>
+          </n-list-item>
+        </n-list>
+        <template #footer>
+          <n-button block quaternary @click="clearHistory" v-if="historyList.length > 0">
+            清空所有历史
+          </n-button>
+        </template>
+      </n-drawer-content>
+    </n-drawer>
+  </div>
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useMessage } from 'naive-ui'
+import { 
+  HistoryOutlined, 
+  FileTextOutlined, 
+  DeleteOutlined 
+} from '@vicons/antd'
 import { generationAPI, imageGenerationAPI } from '../services/api'
+import { historyService } from '../services/history'
 import KeywordInput from '../components/KeywordInput.vue'
-import FrameworkSelector from '../components/FrameworkSelector.vue'
+import ProductPromotion from '../components/ProductPromotion.vue'
 import ContentEditor from '../components/ContentEditor.vue'
 import QualityAnalysis from '../components/QualityAnalysis.vue'
 import Preview from '../components/Preview.vue'
 
 const message = useMessage()
 
-// 默认框架列表
-const defaultFrameworks = [
-  { id: 'viral', name: '爆款引流', description: '高点击率标题+情绪价值输出，适合快速起号' },
-  { id: 'tutorial', name: '干货教程', description: '结构清晰的步骤分享，提供实用价值' },
-  { id: 'promotion', name: '好物种草', description: '真实体验感+痛点解决，转化率更高' },
-  { id: 'lifestyle', name: '生活方式', description: '氛围感图文+感性表达，建立人设必备' }
-]
-
 const analysisResult = ref(null)
-const selectedFramework = ref('viral')
 const generatedContent = ref(null)
 const editedContent = ref(null)
 const qualityAnalysis = ref(null)
@@ -111,6 +162,30 @@ const imageGenerating = ref(false)
 const generatedImages = ref([])
 const showPreview = ref(false)
 const currentKeywords = ref('')
+const currentSpecialRequirements = ref('')
+const previewDevice = ref('mobile')
+const showHistory = ref(false)
+const historyList = ref([])
+const keywordInputRef = ref(null)
+
+onMounted(() => {
+  loadHistoryList()
+})
+
+/**
+ * 处理选品点击
+ * @param {Object} data 包含关键词和特殊要求的对象
+ */
+const handleProductSelect = (data) => {
+  if (keywordInputRef.value) {
+    keywordInputRef.value.setValues(data)
+    message.success('已自动填充选品信息，点击“分析并生成内容”开始创作')
+  }
+}
+
+const loadHistoryList = () => {
+  historyList.value = historyService.getAll()
+}
 
 /**
  * 添加处理日志
@@ -124,27 +199,12 @@ const addLog = (title, content, type = 'info') => {
   })
 }
 
-// 计算要显示的框架：如果有分析结果用分析结果，否则用默认
-const displayFrameworks = computed(() => {
-  return analysisResult.value?.recommendedFrameworks || defaultFrameworks
-})
-
-const handleAnalyzed = async (data) => {
-  analysisResult.value = data.analysis
-  currentKeywords.value = data.keywords
-  
-  // 分析完成后，如果有推荐的框架（JSON 模式），自动选中第一个
-  if (analysisResult.value.recommendedFrameworks && analysisResult.value.recommendedFrameworks.length > 0) {
-    selectedFramework.value = analysisResult.value.recommendedFrameworks[0].id
-  }
-}
-
 /**
  * 一键快捷生成逻辑
- * @param {Object} data - 包含 keywords 的对象
  */
 const handleQuickGenerate = async (data) => {
   currentKeywords.value = data.keywords
+  currentSpecialRequirements.value = data.specialRequirements || ''
   if (!currentKeywords.value) {
     message.warning('请先输入关键词')
     return
@@ -155,12 +215,12 @@ const handleQuickGenerate = async (data) => {
   processingLogs.value = []
   generatedImages.value = []
   generatedContent.value = null
+  editedContent.value = null
   
   try {
     addLog('行业分析', `正在识别 "${currentKeywords.value}" 领域的顶级博主风格...`, 'info')
     generationProgress.value = 20
     
-    // 初始化流式内容对象
     const streamingContent = {
       isRawText: true,
       content: '',
@@ -168,15 +228,15 @@ const handleQuickGenerate = async (data) => {
     }
 
     const response = await generationAPI.autoGenerate(currentKeywords.value, {
+      specialRequirements: currentSpecialRequirements.value,
       onStream: (fullContent, delta) => {
-        // 第一次收到内容时切换日志
         if (streamingContent.content === '') {
           addLog('文案创作', '已锁定最佳方法论，正在流式生成爆款文案...', 'success')
           generationProgress.value = 50
-          // 提前显示内容区域
           generatedContent.value = streamingContent
         }
         streamingContent.content = fullContent
+        editedContent.value = { ...streamingContent }
         generationProgress.value = Math.min(50 + Math.floor(fullContent.length / 10), 85)
       }
     })
@@ -188,10 +248,8 @@ const handleQuickGenerate = async (data) => {
       generatedContent.value = response.data.data
       editedContent.value = { ...response.data.data }
       
-      // 1. 生成文案质量分析
       await generateQualityAnalysis()
       
-      // 2. 自动开始生成配套图片
       addLog('视觉设计', '正在将文案转化为小红书推荐比例 (3:4) 高清大片...', 'info')
       await generateImages(generatedContent.value.content)
       
@@ -199,136 +257,58 @@ const handleQuickGenerate = async (data) => {
       addLog('任务完成', '爆款图文套装已就绪！', 'success')
       message.success('全自动爆款文案已生成！')
       
-      // 自动滚动
-      setTimeout(() => {
-        const target = document.querySelector('.n-space')
-        if (target) {
-          window.scrollTo({ top: target.scrollHeight, behavior: 'smooth' })
-        }
-      }, 100)
+      // 保存到历史
+      saveToHistory()
     }
   } catch (error) {
     console.error('全自动生成失败:', error)
     addLog('生成失败', error.message, 'error')
     message.error('生成失败，请稍后重试')
   } finally {
-    // 稍微延迟一下关闭加载状态，让用户看到“任务完成”
     setTimeout(() => {
       generating.value = false
     }, 1500)
   }
 }
 
-const handleFrameworkSelected = (frameworkId) => {
-  selectedFramework.value = frameworkId
-}
-
-const handleGenerate = async () => {
-  if (!currentKeywords.value) {
-    message.warning('请先输入关键词并点击分析')
-    return
-  }
-  
-  if (!selectedFramework.value) {
-    message.warning('请选择一个写作框架')
-    return
-  }
-  
-  generating.value = true
-  generatedImages.value = [] // 重置图片
-  
-  try {
-    const response = await generationAPI.generate(
-      currentKeywords.value,
-      selectedFramework.value
-    )
-    
-    if (response.data.success) {
-      generatedContent.value = response.data.data
-      editedContent.value = { ...response.data.data }
-      
-      // 1. 生成文案质量分析
-      generateQualityAnalysis()
-      
-      // 2. 自动开始生成配套图片
-      generateImages(generatedContent.value.content)
-      
-      message.success('爆款文案已生成，正在为您配套精美图片...')
-      // 自动滚动到结果区
-      setTimeout(() => {
-        window.scrollTo({ top: document.querySelector('.n-space').scrollHeight, behavior: 'smooth' })
-      }, 100)
-    }
-  } catch (error) {
-    console.error('生成失败:', error)
-    message.error('生成失败，请重试')
-  } finally {
-    generating.value = false
-  }
-}
-
 /**
  * 自动生成配套图片
- * @param {string} content - 文案内容
  */
 const generateImages = async (content) => {
-  if (!content) {
-    console.warn('generateImages: 没有文案内容，取消生成图片')
-    return
-  }
+  if (!content) return
   
-  console.log('--- 开始自动生成配套图片流程 ---')
   imageGenerating.value = true
   try {
-    // 1. 先将文案建议转化为专业提示词
-    console.log('正在转换文案为提示词...')
     const prompts = await imageGenerationAPI.generatePrompts(content)
-    
-    if (!prompts || prompts.length === 0) {
-      console.warn('未生成有效的图片提示词，prompts:', prompts)
-      return
-    }
+    if (!prompts || prompts.length === 0) return
 
-    console.log(`已获得 ${prompts.length} 个提示词，开始并行请求图片生成接口...`)
-
-    // 2. 并行调用图片生成接口
-    const imagePromises = prompts.map((prompt, index) => {
-      console.log(`正在请求第 ${index + 1} 张图片, 提示词: ${prompt.substring(0, 50)}...`)
-      return imageGenerationAPI.generate({ prompt, size: '960x1280' })
-    })
+    const imagePromises = prompts.map(prompt => 
+      imageGenerationAPI.generate({ prompt, size: '960x1280' })
+    )
     
     const results = await Promise.all(imagePromises)
-    console.log('图片生成接口原始结果:', results)
-
     generatedImages.value = results.filter(r => r.success).map(r => ({ url: r.url }))
-    console.log('最终生成的图片列表:', generatedImages.value)
     
     if (generatedImages.value.length > 0) {
       message.success(`成功生成 ${generatedImages.value.length} 张配套图片`)
-    } else {
-      const firstError = results.find(r => !r.success)?.error || '未知错误'
-      message.error(`图片生成失败: ${firstError}`)
+      // 更新历史中的图片
+      saveToHistory()
     }
   } catch (error) {
-    console.error('图片生成流程发生严重错误:', error)
-    message.error('图片生成系统异常')
+    console.error('图片生成失败:', error)
   } finally {
     imageGenerating.value = false
-    console.log('--- 图片生成流程结束 ---')
   }
 }
 
 const generateQualityAnalysis = async () => {
-  if (!generatedContent.value || !selectedFramework.value) {
-    return
-  }
+  if (!generatedContent.value) return
   
   try {
     const response = await generationAPI.generateAnalysis(
       editedContent.value,
-      selectedFramework.value
+      'viral'
     )
-    
     if (response.data.success) {
       qualityAnalysis.value = response.data.data
     }
@@ -338,7 +318,10 @@ const generateQualityAnalysis = async () => {
 }
 
 const handleRegenerate = () => {
-  handleGenerate()
+  handleQuickGenerate({ 
+    keywords: currentKeywords.value,
+    specialRequirements: currentSpecialRequirements.value
+  })
 }
 
 const handlePreview = () => {
@@ -348,22 +331,122 @@ const handlePreview = () => {
 const handleContentChange = (content) => {
   editedContent.value = content
 }
+
+/**
+ * 历史记录相关逻辑
+ */
+const saveToHistory = () => {
+  historyService.save({
+    keywords: currentKeywords.value,
+    specialRequirements: currentSpecialRequirements.value,
+    content: editedContent.value || generatedContent.value,
+    images: generatedImages.value,
+    qualityAnalysis: qualityAnalysis.value
+  })
+  loadHistoryList()
+}
+
+const loadHistory = (item) => {
+  currentKeywords.value = item.keywords
+  currentSpecialRequirements.value = item.specialRequirements || ''
+  generatedContent.value = item.content
+  editedContent.value = { ...item.content }
+  generatedImages.value = item.images || []
+  qualityAnalysis.value = item.qualityAnalysis
+  showHistory.value = false
+  message.success('已恢复历史生成结果')
+}
+
+const deleteHistory = (id) => {
+  historyService.remove(id)
+  loadHistoryList()
+  message.info('已删除记录')
+}
+
+const clearHistory = () => {
+  historyService.clear()
+  loadHistoryList()
+  message.success('已清空历史记录')
+}
+
+const formatDate = (ts) => {
+  return new Date(ts).toLocaleString()
+}
 </script>
 
 <style scoped>
-.n-space {
+.generate-container {
   display: flex;
-  width: 100%;
+  height: calc(100vh - 120px);
+  gap: 24px;
+  position: relative;
 }
 
-.n-space.vertical > * {
-  width: 100%;
+.main-content-scroll {
+  flex: 1;
+  overflow-y: auto;
+  padding-right: 12px;
+}
+
+.generate-main {
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.top-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: -12px;
+}
+
+.preview-sidebar {
+  width: 420px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(20px);
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.05);
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+}
+
+.preview-sidebar.desktop {
+  width: 850px;
+}
+
+.sidebar-header {
+  padding: 16px 20px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.sidebar-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px;
+}
+
+.empty-preview {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.glass-card {
+  background: rgba(255, 255, 255, 0.7) !important;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.5) !important;
+  border-radius: 16px !important;
 }
 
 .processing-card {
-  border-radius: 16px;
-  background: linear-gradient(135deg, #ffffff 0%, #f0f7ff 100%);
-  border: 1px solid #bae7ff;
+  border: 1px solid #bae7ff !important;
 }
 
 .processing-title {
@@ -371,38 +454,6 @@ const handleContentChange = (content) => {
   color: #1890ff;
   display: block;
   margin-bottom: 8px;
-}
-
-.framework-selection-card {
-  border-radius: 16px;
-  overflow: hidden;
-  border: 1px solid #e0e0e0;
-}
-
-.action-footer {
-  margin-top: 24px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 12px;
-}
-
-.generate-btn {
-  height: 54px;
-  font-size: 18px;
-  font-weight: 600;
-  letter-spacing: 1px;
-  box-shadow: 0 8px 20px rgba(24, 160, 88, 0.2);
-  transition: all 0.3s ease;
-}
-
-.generate-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 12px 24px rgba(24, 160, 88, 0.3);
-}
-
-.hint-text {
-  font-size: 13px;
 }
 </style>
 

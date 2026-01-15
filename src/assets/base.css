@@ -94,19 +94,57 @@ p {
 
 /* 滚动条样式（Webkit） */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  background: var(--color-bg-secondary);
+  background: transparent;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--color-gray-400);
-  border-radius: var(--radius-full);
+  background: rgba(0, 0, 0, 0.0); /* 默认完全透明 */
+  border-radius: 10px;
+  border: 1px solid transparent;
+  background-clip: content-box;
+}
+
+/* 只有在滚动或容器被激活时显示，这里简单处理为在父容器 hover 时更明显 */
+*:hover::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.1);
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--color-gray-500);
+  background: rgba(0, 0, 0, 0.2) !important;
+}
+
+/* 隐藏滚动条按钮 */
+::-webkit-scrollbar-button {
+  display: none;
+  width: 0;
+  height: 0;
+}
+
+/* 隐藏边角 */
+::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+/* Firefox 滚动条样式 */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 0, 0, 0.1) transparent;
+}
+
+/* Naive UI 滚动条样式统一 */
+.n-scrollbar > .n-scrollbar-container > .n-scrollbar-content {
+  width: 100%;
+}
+
+.n-scrollbar-rail.n-scrollbar-rail--vertical {
+  width: 6px !important;
+}
+
+.n-scrollbar-rail.n-scrollbar-rail--horizontal {
+  height: 6px !important;
 }

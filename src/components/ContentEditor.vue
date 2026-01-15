@@ -23,15 +23,30 @@
       <n-divider title-placement="left">AI 智能配图</n-divider>
       <n-grid :cols="3" :x-gap="12" :y-gap="12">
         <n-gi v-for="(img, index) in images" :key="index">
-          <n-card content-style="padding: 0" hoverable>
-            <n-image
-              width="100%"
-              height="260px"
-              :src="img.url"
-              fallback-src="https://via.placeholder.com/260x346?text=图片加载失败"
-              object-fit="cover"
-              show-toolbar-tooltip
-            />
+          <n-card content-style="padding: 0" hoverable class="image-card">
+            <div class="image-wrapper">
+              <n-image
+                width="100%"
+                height="260px"
+                :src="img.url"
+                fallback-src="https://via.placeholder.com/260x346?text=图片加载失败"
+                object-fit="cover"
+                show-toolbar-tooltip
+              />
+              <div class="image-overlay">
+                <n-button 
+                  circle 
+                  type="primary"
+                  size="medium"
+                  @click="downloadImage(img.url, index)"
+                  class="download-btn"
+                >
+                  <template #icon>
+                    <n-icon><download-outlined /></n-icon>
+                  </template>
+                </n-button>
+              </div>
+            </div>
           </n-card>
         </n-gi>
         <!-- 加载状态占位 -->
@@ -182,9 +197,35 @@
 <script setup>
 import { ref, watch, nextTick, computed } from 'vue'
 import { useMessage, NModal, NForm, NFormItem, NDatePicker, NSelect, NRadioGroup, NRadio, NAlert } from 'naive-ui'
+import { DownloadOutlined } from '@vicons/antd'
 import MarkdownIt from 'markdown-it'
 
 const message = useMessage()
+
+/**
+ * 下载图片到本地
+ * @param {string} url 图片URL
+ * @param {number} index 图片索引
+ */
+const downloadImage = async (url, index) => {
+  try {
+    const response = await fetch(url)
+    const blob = await response.blob()
+    const blobUrl = window.URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = blobUrl
+    link.download = `ai-generated-image-${index + 1}.png`
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    window.URL.revokeObjectURL(blobUrl)
+    message.success('图片下载成功')
+  } catch (error) {
+    console.error('下载图片失败:', error)
+    message.error('下载失败，请重试')
+  }
+}
+
 const showScheduleModal = ref(false)
 
 const handleAddToKnowledgeBase = () => {
@@ -320,6 +361,46 @@ const handleRawContentChange = (value) => {
   color: #636c76;
   border-left: 0.25em solid #d0d7de;
   margin: 0 0 16px 0;
+}
+
+.image-card {
+  overflow: hidden;
+  border-radius: 12px;
+}
+
+.image-wrapper {
+  position: relative;
+  width: 100%;
+  height: 260px;
+}
+
+.image-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  z-index: 10;
+}
+
+.image-wrapper:hover .image-overlay {
+  opacity: 1;
+}
+
+.download-btn {
+  transform: translateY(10px);
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.image-wrapper:hover .download-btn {
+  transform: translateY(0);
 }
 
 .raw-content-view {

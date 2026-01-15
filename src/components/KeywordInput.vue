@@ -19,19 +19,43 @@
       </n-icon>
     </template>
     
-    <n-input
-      v-model:value="keywords"
-      type="textarea"
-      placeholder="输入关键词，如：复古穿搭、夏日探店、职场成长..."
-      size="large"
-      :autosize="{ minRows: 2, maxRows: 4 }"
-      :loading="analyzing"
-      clearable
-      @input="handleInput"
-      @keyup.enter.ctrl="handleAnalyze"
-    />
+    <div class="input-wrapper">
+      <n-input
+        v-model:value="keywords"
+        type="textarea"
+        placeholder="输入关键词，如：复古穿搭、夏日探店、职场成长..."
+        size="large"
+        :autosize="{ minRows: 2, maxRows: 4 }"
+        :loading="analyzing"
+        clearable
+        @input="handleInput"
+        @keyup.enter.ctrl="handleAnalyze"
+      />
+      <n-button
+        class="voice-btn"
+        quaternary
+        circle
+        size="small"
+        @click="message.info('语音识别功能开发中...')"
+      >
+        <template #icon>
+          <n-icon><audio-outlined /></n-icon>
+        </template>
+      </n-button>
+    </div>
     
     <n-space vertical class="mt-4" v-if="showQuickKeywords">
+      <div class="tool-options">
+        <n-text type="info" class="tool-label">启用第三方工具：</n-text>
+        <n-space>
+          <n-checkbox default-checked label="联网搜索" />
+          <n-checkbox default-checked label="小红书数据抓取" />
+          <n-checkbox default-checked label="电商价格监控" />
+          <n-checkbox default-checked label="市场趋势分析" />
+          <n-checkbox label="竞对账号跟踪" />
+          <n-checkbox label="本地文档分析" />
+        </n-space>
+      </div>
       <n-text type="info">热门关键词推荐</n-text>
       <n-space>
         <n-tag
@@ -86,6 +110,7 @@
 <script setup>
 import { ref, watch } from 'vue'
 import { useMessage } from 'naive-ui'
+import { AudioOutlined } from '@vicons/antd'
 
 const props = defineProps({
   analyzing: {
@@ -144,9 +169,53 @@ const handleAnalyze = async () => {
     specialRequirements: specialRequirements.value
   })
 }
+
+/**
+ * 设置输入框内容
+ * @param {Object} data 包含关键词和特殊要求的对象
+ */
+const setValues = (data) => {
+  keywords.value = data.keywords || ''
+  specialRequirements.value = data.specialRequirements || ''
+}
+
+defineExpose({
+  setValues
+})
 </script>
 
 <style scoped>
+.input-wrapper {
+  position: relative;
+}
+
+.voice-btn {
+  position: absolute;
+  right: 12px;
+  bottom: 12px;
+  color: #999;
+  transition: all 0.3s;
+}
+
+.voice-btn:hover {
+  color: #ff2442;
+  background: rgba(255, 36, 66, 0.1);
+}
+
+.tool-options {
+  margin-bottom: 8px;
+  padding: 8px 12px;
+  background: rgba(59, 130, 246, 0.05);
+  border-radius: 8px;
+  border: 1px dashed rgba(59, 130, 246, 0.2);
+}
+
+.tool-label {
+  font-size: 12px;
+  margin-bottom: 4px;
+  display: block;
+}
+
 .mt-4 {
   margin-top: 16px;
 }
