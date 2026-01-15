@@ -12,85 +12,91 @@
         <n-loading-bar-provider>
           <message-api />
           <n-config-provider :theme="theme" :theme-overrides="themeOverrides">
-            <div class="app-container">
-              <!-- 背景眩光装饰 -->
-              <div class="glow-bg">
-                <div class="glow-1"></div>
-                <div class="glow-2"></div>
-                <div class="glow-3"></div>
-              </div>
+            <!-- 首页 Landing -->
+            <transition name="fade">
+              <landing-page v-if="showLanding" @enter="showLanding = false" />
               
-              <n-layout has-sider class="main-layout">
-                <n-layout-sider
-                  bordered
-                  :collapsed-width="64"
-                  width="260"
-                  show-trigger="bar"
-                  :collapsed="collapsed"
-                  @collapse="collapsed = true"
-                  @expand="collapsed = false"
-                  class="glass-sider"
-                >
-                  <div class="logo-container">
-                    <div class="logo-icon">
-                      <n-icon size="32" color="#ff4d4f">
-                        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                          <path fill="currentColor" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm0-14c-3.31 0-6 2.69-6 6s2.69 6 6 6 6-2.69 6-6-2.69-6-6-6z"/>
-                        </svg>
-                      </n-icon>
-                    </div>
-                    <span v-if="!collapsed" class="logo-text">RedNote AI</span>
-                  </div>
-                  <n-menu
-                    :collapsed="collapsed"
+              <!-- 工作台 Workbench -->
+              <div v-else class="app-container">
+                <!-- 背景眩光装饰 -->
+                <div class="glow-bg">
+                  <div class="glow-1"></div>
+                  <div class="glow-2"></div>
+                  <div class="glow-3"></div>
+                </div>
+                
+                <n-layout has-sider class="main-layout">
+                  <n-layout-sider
+                    bordered
                     :collapsed-width="64"
-                    :collapsed-icon-size="22"
-                    :options="menuOptions"
-                    :value="activeKey"
-                    @update:value="handleMenuSelect"
-                    class="side-menu"
-                  />
-                </n-layout-sider>
-                <n-layout class="content-layout">
-                  <n-layout-header class="glass-header">
-                    <div class="header-content">
-                      <div class="header-left">
-                        <n-breadcrumb v-if="!collapsed">
-                          <n-breadcrumb-item>工作台</n-breadcrumb-item>
-                          <n-breadcrumb-item>{{ currentTitle }}</n-breadcrumb-item>
-                        </n-breadcrumb>
+                    width="260"
+                    show-trigger="bar"
+                    :collapsed="collapsed"
+                    @collapse="collapsed = true"
+                    @expand="collapsed = false"
+                    class="glass-sider"
+                  >
+                    <div class="logo-container" @click="showLanding = true" style="cursor: pointer;">
+                      <div class="logo-icon">
+                        <n-icon size="32" color="#ff4d4f">
+                          <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path fill="currentColor" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm0-14c-3.31 0-6 2.69-6 6s2.69 6 6 6 6-2.69 6-6-2.69-6-6-6z"/>
+                          </svg>
+                        </n-icon>
                       </div>
-                      <div class="header-right">
-                        <n-space align="center" :size="20">
-                          <n-button quaternary circle>
-                            <template #icon><n-icon><search-outlined /></n-icon></template>
-                          </n-button>
-                          <n-avatar
-                            round
-                            size="medium"
-                            src="/2026115204749.png"
-                          />
-                        </n-space>
-                      </div>
+                      <span v-if="!collapsed" class="logo-text">RedNote AI</span>
                     </div>
-                  </n-layout-header>
-                  <n-layout-content content-style="padding: 24px;" :native-scrollbar="false">
-                    <div class="page-transition-container">
-                      <transition name="fade-slide" mode="out-in">
-                        <div :key="activeKey" class="view-wrapper">
-                          <generate-page v-if="activeKey === 'generate'" />
-                          <batch-generate-page v-else-if="activeKey === 'batch'" />
-                          <knowledge-base-page v-else-if="activeKey === 'knowledge'" />
-                          <help-page v-else-if="activeKey === 'help'" />
-                          <settings-page v-else-if="activeKey === 'settings'" />
-                          <account-analysis-page v-else-if="activeKey === 'analysis'" />
+                    <n-menu
+                      :collapsed="collapsed"
+                      :collapsed-width="64"
+                      :collapsed-icon-size="22"
+                      :options="menuOptions"
+                      :value="activeKey"
+                      @update:value="handleMenuSelect"
+                      class="side-menu"
+                    />
+                  </n-layout-sider>
+                  <n-layout class="content-layout">
+                    <n-layout-header class="glass-header">
+                      <div class="header-content">
+                        <div class="header-left">
+                          <n-breadcrumb v-if="!collapsed">
+                            <n-breadcrumb-item>工作台</n-breadcrumb-item>
+                            <n-breadcrumb-item>{{ currentTitle }}</n-breadcrumb-item>
+                          </n-breadcrumb>
                         </div>
-                      </transition>
-                    </div>
-                  </n-layout-content>
+                        <div class="header-right">
+                          <n-space align="center" :size="20">
+                            <n-button quaternary circle>
+                              <template #icon><n-icon><search-outlined /></n-icon></template>
+                            </n-button>
+                            <n-avatar
+                              round
+                              size="medium"
+                              src="/2026115204749.png"
+                            />
+                          </n-space>
+                        </div>
+                      </div>
+                    </n-layout-header>
+                    <n-layout-content content-style="padding: 24px;" :native-scrollbar="false">
+                      <div class="page-transition-container">
+                        <transition name="fade-slide" mode="out-in">
+                          <div :key="activeKey" class="view-wrapper">
+                            <generate-page v-if="activeKey === 'generate'" />
+                            <batch-generate-page v-else-if="activeKey === 'batch'" />
+                            <knowledge-base-page v-else-if="activeKey === 'knowledge'" />
+                            <help-page v-else-if="activeKey === 'help'" />
+                            <settings-page v-else-if="activeKey === 'settings'" />
+                            <account-analysis-page v-else-if="activeKey === 'analysis'" />
+                          </div>
+                        </transition>
+                      </div>
+                    </n-layout-content>
+                  </n-layout>
                 </n-layout>
-              </n-layout>
-            </div>
+              </div>
+            </transition>
           </n-config-provider>
         </n-loading-bar-provider>
       </n-notification-provider>
@@ -134,10 +140,13 @@ import KnowledgeBasePage from './views/KnowledgeBase.vue'
 import HelpPage from './views/Help.vue'
 import SettingsPage from './views/Settings.vue'
 import AccountAnalysisPage from './views/AccountAnalysis.vue'
+import LandingPage from './views/Landing.vue'
 import MessageApi from './components/MessageApi.vue'
 
+// 状态管理
 const collapsed = ref(false)
 const activeKey = ref('generate')
+const showLanding = ref(true)
 const theme = ref(lightTheme)
 
 /**
@@ -180,8 +189,8 @@ const themeOverrides = {
     borderRadius: '10px'
   },
   Scrollbar: {
-    color: 'rgba(0, 0, 0, 0.15)',
-    colorHover: 'rgba(0, 0, 0, 0.25)',
+    color: 'rgba(0, 0, 0, 0.08)',
+    colorHover: 'rgba(0, 0, 0, 0.15)',
     width: '6px',
     height: '6px',
     borderRadius: '10px'
@@ -237,6 +246,10 @@ const handleMenuSelect = (key) => {
 
 <style>
 /* 全局基础样式 */
+html {
+  scroll-behavior: smooth;
+}
+
 * {
   margin: 0;
   padding: 0;
@@ -244,7 +257,8 @@ const handleMenuSelect = (key) => {
 }
 
 body {
-  overflow: hidden;
+  /* 允许首页滚动，工作台内部由 app-container 锁定 */
+  overflow-x: hidden;
 }
 
 #app {
@@ -379,6 +393,16 @@ body {
 }
 
 /* 页面切换动画 */
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.5s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+
 .fade-slide-enter-active,
 .fade-slide-leave-active {
   transition: all 0.3s ease;

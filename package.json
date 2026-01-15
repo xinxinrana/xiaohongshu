@@ -6,12 +6,17 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "backend": "cd backend && npm run dev",
+    "frontend": "npm run dev",
+    "dev:all": "concurrently \"npm run frontend\" \"npm run backend\"",
+    "install:all": "npm install && cd backend && npm install"
   },
   "dependencies": {
     "@element-plus/icons-vue": "^2.3.2",
     "@vicons/antd": "^0.13.0",
     "axios": "^1.13.2",
+    "concurrently": "^8.2.2",
     "element-plus": "^2.13.0",
     "jszip": "^3.10.1",
     "markdown-it": "^14.1.0",
