@@ -26,9 +26,9 @@
           <n-card content-style="padding: 0" hoverable>
             <n-image
               width="100%"
-              height="200px"
+              height="260px"
               :src="img.url"
-              fallback-src="https://via.placeholder.com/200x200?text=图片加载失败"
+              fallback-src="https://via.placeholder.com/260x346?text=图片加载失败"
               object-fit="cover"
               show-toolbar-tooltip
             />
@@ -37,7 +37,7 @@
         <!-- 加载状态占位 -->
         <n-gi v-if="imageLoading">
           <n-card content-style="padding: 0">
-            <n-skeleton height="200px" width="100%" />
+            <n-skeleton height="260px" width="100%" />
           </n-card>
         </n-gi>
       </n-grid>
@@ -138,14 +138,62 @@
           </template>
           预览效果
         </n-button>
+        <n-button @click="handleAddToKnowledgeBase" color="#ff2442" size="large" ghost>
+          <template #icon>➕</template>
+          加入知识库
+        </n-button>
+        <n-button type="success" size="large" @click="handleApproveAndSchedule">
+          <template #icon>🚀</template>
+          人工审批并发布
+        </n-button>
       </n-space>
+
+      <!-- 发布设置模态框 (UI 展示) -->
+      <n-modal v-model:show="showScheduleModal" preset="dialog" title="审批并发布设置">
+        <n-space vertical size="large">
+          <n-alert title="发布流程" type="success">
+            审批通过后，系统将自动调用小红书官方/第三方接口。
+          </n-alert>
+          <n-form label-placement="left" :label-width="100">
+            <n-form-item label="发布时间">
+              <n-date-picker type="datetime" placeholder="选择定时发布时间" clearable />
+            </n-form-item>
+            <n-form-item label="发布账号">
+              <n-select :options="[{label: '我的主账号', value: 'main'}]" default-value="main" />
+            </n-form-item>
+            <n-form-item label="发布类型">
+              <n-radio-group value="now">
+                <n-space>
+                  <n-radio value="now">立即发布</n-radio>
+                  <n-radio value="schedule">定时发布</n-radio>
+                </n-space>
+              </n-radio-group>
+            </n-form-item>
+          </n-form>
+        </n-space>
+        <template #action>
+          <n-button type="primary" @click="showScheduleModal = false">确认审批并发布</n-button>
+        </template>
+      </n-modal>
     </template>
   </n-card>
 </template>
 
 <script setup>
 import { ref, watch, nextTick, computed } from 'vue'
+import { useMessage, NModal, NForm, NFormItem, NDatePicker, NSelect, NRadioGroup, NRadio, NAlert } from 'naive-ui'
 import MarkdownIt from 'markdown-it'
+
+const message = useMessage()
+const showScheduleModal = ref(false)
+
+const handleAddToKnowledgeBase = () => {
+  message.success('已成功加入知识库')
+}
+
+const handleApproveAndSchedule = () => {
+  showScheduleModal.value = true
+}
 
 const md = new MarkdownIt({
   html: true,

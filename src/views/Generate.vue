@@ -192,7 +192,7 @@ const handleQuickGenerate = async (data) => {
       await generateQualityAnalysis()
       
       // 2. 自动开始生成配套图片
-      addLog('视觉设计', '正在将文案转化为 2K 高清大片...', 'info')
+      addLog('视觉设计', '正在将文案转化为小红书推荐比例 (3:4) 高清大片...', 'info')
       await generateImages(generatedContent.value.content)
       
       generationProgress.value = 100
@@ -294,7 +294,7 @@ const generateImages = async (content) => {
     // 2. 并行调用图片生成接口
     const imagePromises = prompts.map((prompt, index) => {
       console.log(`正在请求第 ${index + 1} 张图片, 提示词: ${prompt.substring(0, 50)}...`)
-      return imageGenerationAPI.generate({ prompt, size: '2K' })
+      return imageGenerationAPI.generate({ prompt, size: '960x1280' })
     })
     
     const results = await Promise.all(imagePromises)

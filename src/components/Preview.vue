@@ -59,7 +59,7 @@
               <div v-for="(img, index) in images" :key="'gen-' + index" class="image-item">
                 <n-image
                   width="100%"
-                  height="400px"
+                  height="500px"
                   :src="img.url"
                   object-fit="cover"
                 />
@@ -211,7 +211,7 @@ const formatContent = (body) => {
 }
 
 .image-placeholder {
-  height: 400px;
+  height: 500px;
   background: #f5f5f5;
   display: flex;
   align-items: center;

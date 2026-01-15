@@ -37,6 +37,54 @@ const imageClient = axios.create({
 })
 
 /**
+ * 知识库 API
+ */
+export const knowledgeAPI = {
+  /**
+   * 获取所有知识库条目
+   */
+  async getAll() {
+    const data = localStorage.getItem('xhs_knowledge_base')
+    return {
+      success: true,
+      data: data ? JSON.parse(data) : []
+    }
+  },
+
+  /**
+   * 保存知识库条目
+   */
+  async save(items) {
+    localStorage.setItem('xhs_knowledge_base', JSON.stringify(items))
+    return { success: true }
+  },
+
+  /**
+   * 添加单个条目
+   */
+  async add(item) {
+    const { data: items } = await this.getAll()
+    items.push({
+      id: Date.now().toString(),
+      ...item,
+      createdAt: new Date().toISOString()
+    })
+    await this.save(items)
+    return { success: true }
+  },
+
+  /**
+   * 删除单个条目
+   */
+  async delete(id) {
+    const { data: items } = await this.getAll()
+    const filtered = items.filter(item => item.id !== id)
+    await this.save(filtered)
+    return { success: true }
+  }
+}
+
+/**
  * 获取 AI 模型的响应（支持流式传输）
  * @param {string} prompt - 提示词
  * @param {Object} options - 配置项
@@ -323,7 +371,7 @@ export const imageGenerationAPI = {
    * 生成图片
    * @param {Object} params - 生成参数
    * @param {string} params.prompt - 提示词
-   * @param {string} [params.size='2K'] - 图片尺寸 (例如: 1024x1024, 2K, 4K)
+   * @param {string} [params.size='960x1280'] - 图片尺寸 (小红书推荐 3:4 比例，且满足像素下限)
    * @returns {Promise<Object>}
    */
   async generate(params) {
@@ -331,7 +379,7 @@ export const imageGenerationAPI = {
     const payload = {
       model: model,
       prompt: params.prompt,
-      size: params.size || '2K',
+      size: params.size || '960x1280',
       response_format: 'url',
       sequential_image_generation: 'disabled',
       stream: false,

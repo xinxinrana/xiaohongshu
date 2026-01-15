@@ -22,12 +22,13 @@
     <n-input
       v-model:value="keywords"
       type="textarea"
-      :rows="3"
-      placeholder="输入一个关键词或多个关键词，用逗号或空格分隔"
+      placeholder="输入关键词，如：复古穿搭、夏日探店、职场成长..."
       size="large"
+      :autosize="{ minRows: 2, maxRows: 4 }"
       :loading="analyzing"
       clearable
       @input="handleInput"
+      @keyup.enter.ctrl="handleAnalyze"
     />
     
     <n-space vertical class="mt-4" v-if="showQuickKeywords">
@@ -46,6 +47,19 @@
         </n-tag>
       </n-space>
     </n-space>
+
+    <!-- 新增：特殊要求输入 -->
+    <n-collapse class="mt-4">
+      <n-collapse-item title="特殊要求 (可选)" name="special">
+        <n-input
+          v-model:value="specialRequirements"
+          type="textarea"
+          placeholder="例如：必须包含价格、避免使用口语化表达、增加互动问题、指定人设等..."
+          size="medium"
+          :autosize="{ minRows: 2, maxRows: 3 }"
+        />
+      </n-collapse-item>
+    </n-collapse>
     
     <template #footer>
       <n-button
@@ -84,6 +98,7 @@ const emit = defineEmits(['analyzed'])
 const message = useMessage()
 
 const keywords = ref('')
+const specialRequirements = ref('')
 const showQuickKeywords = ref(true)
 
 const handleInput = (val) => {
@@ -124,7 +139,10 @@ const handleAnalyze = async () => {
     return
   }
   
-  emit('analyzed', { keywords: keywords.value })
+  emit('analyzed', {
+    keywords: keywords.value,
+    specialRequirements: specialRequirements.value
+  })
 }
 </script>
 

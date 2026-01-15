@@ -45,7 +45,11 @@
                 </n-layout-header>
                 <n-layout-content>
                   <div class="content">
-                    <generate-page />
+                    <generate-page v-if="activeKey === 'generate'" />
+                    <knowledge-base-page v-else-if="activeKey === 'knowledge'" />
+                    <help-page v-else-if="activeKey === 'help'" />
+                    <settings-page v-else-if="activeKey === 'settings'" />
+                    <account-analysis-page v-else-if="activeKey === 'analysis'" />
                   </div>
                 </n-layout-content>
               </n-layout>
@@ -70,9 +74,16 @@ import {
 } from 'naive-ui'
 import { 
   ThunderboltOutlined, 
-  FileTextOutlined 
+  FileTextOutlined,
+  BookOutlined,
+  SettingOutlined,
+  BarChartOutlined
 } from '@vicons/antd'
 import GeneratePage from './views/Generate.vue'
+import KnowledgeBasePage from './views/KnowledgeBase.vue'
+import HelpPage from './views/Help.vue'
+import SettingsPage from './views/Settings.vue'
+import AccountAnalysisPage from './views/AccountAnalysis.vue'
 import MessageApi from './components/MessageApi.vue'
 
 const collapsed = ref(false)
@@ -81,14 +92,29 @@ const theme = ref(lightTheme)
 
 const menuOptions = [
   {
-    label: '生成内容',
+    label: '一键生成',
     key: 'generate',
     icon: () => h(ThunderboltOutlined)
+  },
+  {
+    label: '内容知识库',
+    key: 'knowledge',
+    icon: () => h(BookOutlined)
+  },
+  {
+    label: '账号定位分析',
+    key: 'analysis',
+    icon: () => h(BarChartOutlined)
   },
   {
     label: '帮助中心',
     key: 'help',
     icon: () => h(FileTextOutlined)
+  },
+  {
+    label: '集成配置',
+    key: 'settings',
+    icon: () => h(SettingOutlined)
   }
 ]
 
