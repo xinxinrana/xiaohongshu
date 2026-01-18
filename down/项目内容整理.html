@@ -1,0 +1,776 @@
+<!doctype html>
+<html>
+<head>
+<meta charset='UTF-8'><meta name='viewport' content='width=device-width initial-scale=1'>
+
+<link href='https://fonts.googleapis.com/css?family=Open+Sans:400italic,700italic,700,400&subset=latin,latin-ext' rel='stylesheet' type='text/css' /><style type='text/css'>html {overflow-x: initial !important;}:root { --bg-color: #ffffff; --text-color: #333333; --select-text-bg-color: #B5D6FC; --select-text-font-color: auto; --monospace: "Lucida Console",Consolas,"Courier",monospace; --title-bar-height: 20px; }
+.mac-os-11 { --title-bar-height: 28px; }
+html { font-size: 14px; background-color: var(--bg-color); color: var(--text-color); font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; -webkit-font-smoothing: antialiased; }
+h1, h2, h3, h4, h5 { white-space: pre-wrap; }
+body { margin: 0px; padding: 0px; height: auto; inset: 0px; font-size: 1rem; line-height: 1.42857; overflow-x: hidden; background: inherit; }
+iframe { margin: auto; }
+a.url { word-break: break-all; }
+a:active, a:hover { outline: 0px; }
+.in-text-selection, ::selection { text-shadow: none; background: var(--select-text-bg-color); color: var(--select-text-font-color); }
+#write { margin: 0px auto; height: auto; width: inherit; word-break: normal; overflow-wrap: break-word; position: relative; white-space: normal; overflow-x: visible; padding-top: 36px; }
+#write.first-line-indent p { text-indent: 2em; }
+#write.first-line-indent li p, #write.first-line-indent p * { text-indent: 0px; }
+#write.first-line-indent li { margin-left: 2em; }
+.for-image #write { padding-left: 8px; padding-right: 8px; }
+body.typora-export { padding-left: 30px; padding-right: 30px; }
+.typora-export .footnote-line, .typora-export li, .typora-export p { white-space: pre-wrap; }
+.typora-export .task-list-item input { pointer-events: none; }
+@media screen and (max-width: 500px) {
+  body.typora-export { padding-left: 0px; padding-right: 0px; }
+  #write { padding-left: 20px; padding-right: 20px; }
+}
+#write li > figure:last-child { margin-bottom: 0.5rem; }
+#write ol, #write ul { position: relative; }
+img { max-width: 100%; vertical-align: middle; image-orientation: from-image; }
+button, input, select, textarea { color: inherit; font: inherit; }
+input[type="checkbox"], input[type="radio"] { line-height: normal; padding: 0px; }
+*, ::after, ::before { box-sizing: border-box; }
+#write h1, #write h2, #write h3, #write h4, #write h5, #write h6, #write p, #write pre { width: inherit; position: relative; }
+#write svg h1, #write svg h2, #write svg h3, #write svg h4, #write svg h5, #write svg h6, #write svg p { position: static; }
+p { line-height: inherit; }
+h1, h2, h3, h4, h5, h6 { break-after: avoid-page; break-inside: avoid; orphans: 4; }
+p { orphans: 4; }
+h1 { font-size: 2rem; }
+h2 { font-size: 1.8rem; }
+h3 { font-size: 1.6rem; }
+h4 { font-size: 1.4rem; }
+h5 { font-size: 1.2rem; }
+h6 { font-size: 1rem; }
+.md-math-block, .md-rawblock, h1, h2, h3, h4, h5, h6, p { margin-top: 1rem; margin-bottom: 1rem; }
+.hidden { display: none; }
+.md-blockmeta { color: rgb(204, 204, 204); font-weight: 700; font-style: italic; }
+a { cursor: pointer; }
+sup.md-footnote { padding: 2px 4px; background-color: rgba(238, 238, 238, 0.7); color: rgb(85, 85, 85); border-radius: 4px; cursor: pointer; }
+sup.md-footnote a, sup.md-footnote a:hover { color: inherit; text-transform: inherit; text-decoration: inherit; }
+#write input[type="checkbox"] { cursor: pointer; width: inherit; height: inherit; }
+figure { overflow-x: auto; margin: 1.2em 0px; max-width: calc(100% + 16px); padding: 0px; }
+figure > table { margin: 0px; }
+thead, tr { break-inside: avoid; break-after: auto; }
+thead { display: table-header-group; }
+table { border-collapse: collapse; border-spacing: 0px; width: 100%; overflow: auto; break-inside: auto; text-align: left; }
+table.md-table td { min-width: 32px; }
+.CodeMirror-gutters { border-right: 0px; background-color: inherit; }
+.CodeMirror-linenumber { user-select: none; }
+.CodeMirror { text-align: left; }
+.CodeMirror-placeholder { opacity: 0.3; }
+.CodeMirror pre { padding: 0px 4px; }
+.CodeMirror-lines { padding: 0px; }
+div.hr:focus { cursor: none; }
+#write pre { white-space: pre-wrap; }
+#write.fences-no-line-wrapping pre { white-space: pre; }
+#write pre.ty-contain-cm { white-space: normal; }
+.CodeMirror-gutters { margin-right: 4px; }
+.md-fences { font-size: 0.9rem; display: block; break-inside: avoid; text-align: left; overflow: visible; white-space: pre; background: inherit; position: relative !important; }
+.md-fences-adv-panel { width: 100%; margin-top: 10px; text-align: center; padding-top: 0px; padding-bottom: 8px; overflow-x: auto; }
+#write .md-fences.mock-cm { white-space: pre-wrap; }
+.md-fences.md-fences-with-lineno { padding-left: 0px; }
+#write.fences-no-line-wrapping .md-fences.mock-cm { white-space: pre; overflow-x: auto; }
+.md-fences.mock-cm.md-fences-with-lineno { padding-left: 8px; }
+.CodeMirror-line, twitterwidget { break-inside: avoid; }
+svg { break-inside: avoid; }
+.footnotes { opacity: 0.8; font-size: 0.9rem; margin-top: 1em; margin-bottom: 1em; }
+.footnotes + .footnotes { margin-top: 0px; }
+.md-reset { margin: 0px; padding: 0px; border: 0px; outline: 0px; vertical-align: top; background: 0px 0px; text-decoration: none; text-shadow: none; float: none; position: static; width: auto; height: auto; white-space: nowrap; cursor: inherit; -webkit-tap-highlight-color: transparent; line-height: normal; font-weight: 400; text-align: left; box-sizing: content-box; direction: ltr; }
+li div { padding-top: 0px; }
+blockquote { margin: 1rem 0px; }
+li .mathjax-block, li p { margin: 0.5rem 0px; }
+li blockquote { margin: 1rem 0px; }
+li { margin: 0px; position: relative; }
+blockquote > :last-child { margin-bottom: 0px; }
+blockquote > :first-child, li > :first-child { margin-top: 0px; }
+.footnotes-area { color: rgb(136, 136, 136); margin-top: 0.714rem; padding-bottom: 0.143rem; white-space: normal; }
+#write .footnote-line { white-space: pre-wrap; }
+@media print {
+  body, html { border: 1px solid transparent; height: 99%; break-after: avoid; break-before: avoid; font-variant-ligatures: no-common-ligatures; }
+  #write { margin-top: 0px; border-color: transparent !important; padding-top: 0px !important; padding-bottom: 0px !important; }
+  .typora-export * { -webkit-print-color-adjust: exact; }
+  .typora-export #write { break-after: avoid; }
+  .typora-export #write::after { height: 0px; }
+  .is-mac table { break-inside: avoid; }
+  #write > p:nth-child(1) { margin-top: 0px; }
+  .typora-export-show-outline .typora-export-sidebar { display: none; }
+  figure { overflow-x: visible; }
+}
+.footnote-line { margin-top: 0.714em; font-size: 0.7em; }
+a img, img a { cursor: pointer; }
+pre.md-meta-block { font-size: 0.8rem; min-height: 0.8rem; white-space: pre-wrap; background: rgb(204, 204, 204); display: block; overflow-x: hidden; }
+p > .md-image:only-child:not(.md-img-error) img, p > img:only-child { display: block; margin: auto; }
+#write.first-line-indent p > .md-image:only-child:not(.md-img-error) img { left: -2em; position: relative; }
+p > .md-image:only-child { display: inline-block; width: 100%; }
+#write .MathJax_Display { margin: 0.8em 0px 0px; }
+.md-math-block { width: 100%; }
+.md-math-block:not(:empty)::after { display: none; }
+.MathJax_ref { fill: currentcolor; }
+[contenteditable="true"]:active, [contenteditable="true"]:focus, [contenteditable="false"]:active, [contenteditable="false"]:focus { outline: 0px; box-shadow: none; }
+.md-task-list-item { position: relative; list-style-type: none; }
+.task-list-item.md-task-list-item { padding-left: 0px; }
+.md-task-list-item > input { position: absolute; top: 0px; left: 0px; margin-left: -1.2em; margin-top: calc(1em - 10px); border: none; }
+.math { font-size: 1rem; }
+.md-toc { min-height: 3.58rem; position: relative; font-size: 0.9rem; border-radius: 10px; }
+.md-toc-content { position: relative; margin-left: 0px; }
+.md-toc-content::after, .md-toc::after { display: none; }
+.md-toc-item { display: block; color: rgb(65, 131, 196); }
+.md-toc-item a { text-decoration: none; }
+.md-toc-inner:hover { text-decoration: underline; }
+.md-toc-inner { display: inline-block; cursor: pointer; }
+.md-toc-h1 .md-toc-inner { margin-left: 0px; font-weight: 700; }
+.md-toc-h2 .md-toc-inner { margin-left: 2em; }
+.md-toc-h3 .md-toc-inner { margin-left: 4em; }
+.md-toc-h4 .md-toc-inner { margin-left: 6em; }
+.md-toc-h5 .md-toc-inner { margin-left: 8em; }
+.md-toc-h6 .md-toc-inner { margin-left: 10em; }
+@media screen and (max-width: 48em) {
+  .md-toc-h3 .md-toc-inner { margin-left: 3.5em; }
+  .md-toc-h4 .md-toc-inner { margin-left: 5em; }
+  .md-toc-h5 .md-toc-inner { margin-left: 6.5em; }
+  .md-toc-h6 .md-toc-inner { margin-left: 8em; }
+}
+a.md-toc-inner { font-size: inherit; font-style: inherit; font-weight: inherit; line-height: inherit; }
+.footnote-line a:not(.reversefootnote) { color: inherit; }
+.reversefootnote { font-family: ui-monospace, sans-serif; }
+.md-attr { display: none; }
+.md-fn-count::after { content: "."; }
+code, pre, samp, tt { font-family: var(--monospace); }
+kbd { margin: 0px 0.1em; padding: 0.1em 0.6em; font-size: 0.8em; color: rgb(36, 39, 41); background: rgb(255, 255, 255); border: 1px solid rgb(173, 179, 185); border-radius: 3px; box-shadow: rgba(12, 13, 14, 0.2) 0px 1px 0px, rgb(255, 255, 255) 0px 0px 0px 2px inset; white-space: nowrap; vertical-align: middle; }
+.md-comment { color: rgb(162, 127, 3); opacity: 0.6; font-family: var(--monospace); }
+code { text-align: left; vertical-align: initial; }
+a.md-print-anchor { white-space: pre !important; border-width: initial !important; border-style: none !important; border-color: initial !important; display: inline-block !important; position: absolute !important; width: 1px !important; right: 0px !important; outline: 0px !important; background: 0px 0px !important; text-decoration: initial !important; text-shadow: initial !important; }
+.os-windows.monocolor-emoji .md-emoji { font-family: "Segoe UI Symbol", sans-serif; }
+.md-diagram-panel > svg { max-width: 100%; }
+[lang="flow"] svg, [lang="mermaid"] svg { max-width: 100%; height: auto; }
+[lang="mermaid"] .node text { font-size: 1rem; }
+table tr th { border-bottom: 0px; }
+video { max-width: 100%; display: block; margin: 0px auto; }
+iframe { max-width: 100%; width: 100%; border: none; }
+.highlight td, .highlight tr { border: 0px; }
+mark { background: rgb(255, 255, 0); color: rgb(0, 0, 0); }
+.md-html-inline .md-plain, .md-html-inline strong, mark .md-inline-math, mark strong { color: inherit; }
+.md-expand mark .md-meta { opacity: 0.3 !important; }
+mark .md-meta { color: rgb(0, 0, 0); }
+@media print {
+  .typora-export h1, .typora-export h2, .typora-export h3, .typora-export h4, .typora-export h5, .typora-export h6 { break-inside: avoid; }
+}
+.md-diagram-panel .messageText { stroke: none !important; }
+.md-diagram-panel .start-state { fill: var(--node-fill); }
+.md-diagram-panel .edgeLabel rect { opacity: 1 !important; }
+.md-fences.md-fences-math { font-size: 1em; }
+.md-fences-advanced:not(.md-focus) { padding: 0px; white-space: nowrap; border: 0px; }
+.md-fences-advanced:not(.md-focus) { background: inherit; }
+.mermaid-svg { margin: auto; }
+.typora-export-show-outline .typora-export-content { max-width: 1440px; margin: auto; display: flex; flex-direction: row; }
+.typora-export-sidebar { width: 300px; font-size: 0.8rem; margin-top: 80px; margin-right: 18px; }
+.typora-export-show-outline #write { --webkit-flex: 2; flex: 2 1 0%; }
+.typora-export-sidebar .outline-content { position: fixed; top: 0px; max-height: 100%; overflow: hidden auto; padding-bottom: 30px; padding-top: 60px; width: 300px; }
+@media screen and (max-width: 1024px) {
+  .typora-export-sidebar, .typora-export-sidebar .outline-content { width: 240px; }
+}
+@media screen and (max-width: 800px) {
+  .typora-export-sidebar { display: none; }
+}
+.outline-content li, .outline-content ul { margin-left: 0px; margin-right: 0px; padding-left: 0px; padding-right: 0px; list-style: none; overflow-wrap: anywhere; }
+.outline-content ul { margin-top: 0px; margin-bottom: 0px; }
+.outline-content strong { font-weight: 400; }
+.outline-expander { width: 1rem; height: 1.42857rem; position: relative; display: table-cell; vertical-align: middle; cursor: pointer; padding-left: 4px; }
+.outline-expander::before { content: ""; position: relative; font-family: Ionicons; display: inline-block; font-size: 8px; vertical-align: middle; }
+.outline-item { padding-top: 3px; padding-bottom: 3px; cursor: pointer; }
+.outline-expander:hover::before { content: ""; }
+.outline-h1 > .outline-item { padding-left: 0px; }
+.outline-h2 > .outline-item { padding-left: 1em; }
+.outline-h3 > .outline-item { padding-left: 2em; }
+.outline-h4 > .outline-item { padding-left: 3em; }
+.outline-h5 > .outline-item { padding-left: 4em; }
+.outline-h6 > .outline-item { padding-left: 5em; }
+.outline-label { cursor: pointer; display: table-cell; vertical-align: middle; text-decoration: none; color: inherit; }
+.outline-label:hover { text-decoration: underline; }
+.outline-item:hover { border-color: rgb(245, 245, 245); background-color: var(--item-hover-bg-color); }
+.outline-item:hover { margin-left: -28px; margin-right: -28px; border-left: 28px solid transparent; border-right: 28px solid transparent; }
+.outline-item-single .outline-expander::before, .outline-item-single .outline-expander:hover::before { display: none; }
+.outline-item-open > .outline-item > .outline-expander::before { content: ""; }
+.outline-children { display: none; }
+.info-panel-tab-wrapper { display: none; }
+.outline-item-open > .outline-children { display: block; }
+.typora-export .outline-item { padding-top: 1px; padding-bottom: 1px; }
+.typora-export .outline-item:hover { margin-right: -8px; border-right: 8px solid transparent; }
+.typora-export .outline-expander::before { content: "+"; font-family: inherit; top: -1px; }
+.typora-export .outline-expander:hover::before, .typora-export .outline-item-open > .outline-item > .outline-expander::before { content: "−"; }
+.typora-export-collapse-outline .outline-children { display: none; }
+.typora-export-collapse-outline .outline-item-open > .outline-children, .typora-export-no-collapse-outline .outline-children { display: block; }
+.typora-export-no-collapse-outline .outline-expander::before { content: "" !important; }
+.typora-export-show-outline .outline-item-active > .outline-item .outline-label { font-weight: 700; }
+.md-inline-math-container mjx-container { zoom: 0.95; }
+mjx-container { break-inside: avoid; }
+.md-alert.md-alert-note { border-left-color: rgb(9, 105, 218); }
+.md-alert.md-alert-important { border-left-color: rgb(130, 80, 223); }
+.md-alert.md-alert-warning { border-left-color: rgb(154, 103, 0); }
+.md-alert.md-alert-tip { border-left-color: rgb(31, 136, 61); }
+.md-alert.md-alert-caution { border-left-color: rgb(207, 34, 46); }
+.md-alert { padding: 0px 1em; margin-bottom: 16px; color: inherit; border-left: 0.25em solid rgb(0, 0, 0); }
+.md-alert-text-note { color: rgb(9, 105, 218); }
+.md-alert-text-important { color: rgb(130, 80, 223); }
+.md-alert-text-warning { color: rgb(154, 103, 0); }
+.md-alert-text-tip { color: rgb(31, 136, 61); }
+.md-alert-text-caution { color: rgb(207, 34, 46); }
+.md-alert-text { font-size: 0.9rem; font-weight: 700; }
+.md-alert-text svg { fill: currentcolor; position: relative; top: 0.125em; margin-right: 1ch; overflow: visible; }
+.md-alert-text-container::after { content: attr(data-text); text-transform: capitalize; pointer-events: none; margin-right: 1ch; }
+
+
+:root {
+    --side-bar-bg-color: #fafafa;
+    --control-text-color: #777;
+}
+
+@include-when-export url(https://fonts.googleapis.com/css?family=Open+Sans:400italic,700italic,700,400&subset=latin,latin-ext);
+
+/* open-sans-regular - latin-ext_latin */
+  /* open-sans-italic - latin-ext_latin */
+    /* open-sans-700 - latin-ext_latin */
+    /* open-sans-700italic - latin-ext_latin */
+  html {
+    font-size: 16px;
+    -webkit-font-smoothing: antialiased;
+}
+
+body {
+    font-family: "Open Sans","Clear Sans", "Helvetica Neue", Helvetica, Arial, 'Segoe UI Emoji', sans-serif;
+    color: rgb(51, 51, 51);
+    line-height: 1.6;
+}
+
+#write {
+    max-width: 860px;
+  	margin: 0 auto;
+  	padding: 30px;
+    padding-bottom: 100px;
+}
+
+@media only screen and (min-width: 1400px) {
+	#write {
+		max-width: 1024px;
+	}
+}
+
+@media only screen and (min-width: 1800px) {
+	#write {
+		max-width: 1200px;
+	}
+}
+
+#write > ul:first-child,
+#write > ol:first-child{
+    margin-top: 30px;
+}
+
+a {
+    color: #4183C4;
+}
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    position: relative;
+    margin-top: 1rem;
+    margin-bottom: 1rem;
+    font-weight: bold;
+    line-height: 1.4;
+    cursor: text;
+}
+h1:hover a.anchor,
+h2:hover a.anchor,
+h3:hover a.anchor,
+h4:hover a.anchor,
+h5:hover a.anchor,
+h6:hover a.anchor {
+    text-decoration: none;
+}
+h1 tt,
+h1 code {
+    font-size: inherit;
+}
+h2 tt,
+h2 code {
+    font-size: inherit;
+}
+h3 tt,
+h3 code {
+    font-size: inherit;
+}
+h4 tt,
+h4 code {
+    font-size: inherit;
+}
+h5 tt,
+h5 code {
+    font-size: inherit;
+}
+h6 tt,
+h6 code {
+    font-size: inherit;
+}
+h1 {
+    font-size: 2.25em;
+    line-height: 1.2;
+    border-bottom: 1px solid #eee;
+}
+h2 {
+    font-size: 1.75em;
+    line-height: 1.225;
+    border-bottom: 1px solid #eee;
+}
+
+/*@media print {
+    .typora-export h1,
+    .typora-export h2 {
+        border-bottom: none;
+        padding-bottom: initial;
+    }
+
+    .typora-export h1::after,
+    .typora-export h2::after {
+        content: "";
+        display: block;
+        height: 100px;
+        margin-top: -96px;
+        border-top: 1px solid #eee;
+    }
+}*/
+
+h3 {
+    font-size: 1.5em;
+    line-height: 1.43;
+}
+h4 {
+    font-size: 1.25em;
+}
+h5 {
+    font-size: 1em;
+}
+h6 {
+   font-size: 1em;
+    color: #777;
+}
+p,
+blockquote,
+ul,
+ol,
+dl,
+table{
+    margin: 0.8em 0;
+}
+li>ol,
+li>ul {
+    margin: 0 0;
+}
+hr {
+    height: 2px;
+    padding: 0;
+    margin: 16px 0;
+    background-color: #e7e7e7;
+    border: 0 none;
+    overflow: hidden;
+    box-sizing: content-box;
+}
+
+li p.first {
+    display: inline-block;
+}
+ul,
+ol {
+    padding-left: 30px;
+}
+ul:first-child,
+ol:first-child {
+    margin-top: 0;
+}
+ul:last-child,
+ol:last-child {
+    margin-bottom: 0;
+}
+blockquote {
+    border-left: 4px solid #dfe2e5;
+    padding: 0 15px;
+    color: #777777;
+}
+blockquote blockquote {
+    padding-right: 0;
+}
+table {
+    padding: 0;
+    word-break: initial;
+}
+table tr {
+    border: 1px solid #dfe2e5;
+    margin: 0;
+    padding: 0;
+}
+table tr:nth-child(2n),
+thead {
+    background-color: #f8f8f8;
+}
+table th {
+    font-weight: bold;
+    border: 1px solid #dfe2e5;
+    border-bottom: 0;
+    margin: 0;
+    padding: 6px 13px;
+}
+table td {
+    border: 1px solid #dfe2e5;
+    margin: 0;
+    padding: 6px 13px;
+}
+table th:first-child,
+table td:first-child {
+    margin-top: 0;
+}
+table th:last-child,
+table td:last-child {
+    margin-bottom: 0;
+}
+
+.CodeMirror-lines {
+    padding-left: 4px;
+}
+
+.code-tooltip {
+    box-shadow: 0 1px 1px 0 rgba(0,28,36,.3);
+    border-top: 1px solid #eef2f2;
+}
+
+.md-fences,
+code,
+tt {
+    border: 1px solid #e7eaed;
+    background-color: #f8f8f8;
+    border-radius: 3px;
+    padding: 0;
+    padding: 2px 4px 0px 4px;
+    font-size: 0.9em;
+}
+
+code {
+    background-color: #f3f4f4;
+    padding: 0 2px 0 2px;
+}
+
+.md-fences {
+    margin-bottom: 15px;
+    margin-top: 15px;
+    padding-top: 8px;
+    padding-bottom: 6px;
+}
+
+
+.md-task-list-item > input {
+  margin-left: -1.3em;
+}
+
+@media print {
+    html {
+        font-size: 13px;
+    }
+    pre {
+        page-break-inside: avoid;
+        word-wrap: break-word;
+    }
+}
+
+.md-fences {
+	background-color: #f8f8f8;
+}
+#write pre.md-meta-block {
+	padding: 1rem;
+    font-size: 85%;
+    line-height: 1.45;
+    background-color: #f7f7f7;
+    border: 0;
+    border-radius: 3px;
+    color: #777777;
+    margin-top: 0 !important;
+}
+
+.mathjax-block>.code-tooltip {
+	bottom: .375rem;
+}
+
+.md-mathjax-midline {
+    background: #fafafa;
+}
+
+#write>h3.md-focus:before{
+	left: -1.5625rem;
+	top: .375rem;
+}
+#write>h4.md-focus:before{
+	left: -1.5625rem;
+	top: .285714286rem;
+}
+#write>h5.md-focus:before{
+	left: -1.5625rem;
+	top: .285714286rem;
+}
+#write>h6.md-focus:before{
+	left: -1.5625rem;
+	top: .285714286rem;
+}
+.md-image>.md-meta {
+    /*border: 1px solid #ddd;*/
+    border-radius: 3px;
+    padding: 2px 0px 0px 4px;
+    font-size: 0.9em;
+    color: inherit;
+}
+
+.md-tag {
+    color: #a7a7a7;
+    opacity: 1;
+}
+
+.md-toc { 
+    margin-top:20px;
+    padding-bottom:20px;
+}
+
+.sidebar-tabs {
+    border-bottom: none;
+}
+
+#typora-quick-open {
+    border: 1px solid #ddd;
+    background-color: #f8f8f8;
+}
+
+#typora-quick-open-item {
+    background-color: #FAFAFA;
+    border-color: #FEFEFE #e5e5e5 #e5e5e5 #eee;
+    border-style: solid;
+    border-width: 1px;
+}
+
+/** focus mode */
+.on-focus-mode blockquote {
+    border-left-color: rgba(85, 85, 85, 0.12);
+}
+
+header, .context-menu, .megamenu-content, footer{
+    font-family: "Segoe UI", "Arial", sans-serif;
+}
+
+.file-node-content:hover .file-node-icon,
+.file-node-content:hover .file-node-open-state{
+    visibility: visible;
+}
+
+.mac-seamless-mode #typora-sidebar {
+    background-color: #fafafa;
+    background-color: var(--side-bar-bg-color);
+}
+
+.mac-os #write{
+    caret-color: AccentColor;
+}
+
+.md-lang {
+    color: #b4654d;
+}
+
+/*.html-for-mac {
+    --item-hover-bg-color: #E6F0FE;
+}*/
+
+#md-notification .btn {
+    border: 0;
+}
+
+.dropdown-menu .divider {
+    border-color: #e5e5e5;
+    opacity: 0.4;
+}
+
+.ty-preferences .window-content {
+    background-color: #fafafa;
+}
+
+.ty-preferences .nav-group-item.active {
+    color: white;
+    background: #999;
+}
+
+.menu-item-container a.menu-style-btn {
+    background-color: #f5f8fa;
+    background-image: linear-gradient( 180deg , hsla(0, 0%, 100%, 0.8), hsla(0, 0%, 100%, 0)); 
+}
+
+
+
+</style><title>项目内容整理</title>
+</head>
+<body class='typora-export os-windows'><div class='typora-export-content'>
+<div id='write'  class=''><p><img src="项目内容整理.assets/image-20260118191342959.png" referrerpolicy="no-referrer" alt="image-20260118191342959"></p><p>&nbsp;</p><h1 id='幻境突围小队-小红书outputs内容展示'><span>幻境突围小队-小红书Outputs内容展示</span></h1><hr /><h2 id='上海武康路半日逛吃指南要求标注拍照机位和甜品店人均消费文风带松弛感标签'><span>上海武康路半日逛吃指南，要求标注拍照机位和甜品店人均消费，文风带松弛感标签。</span></h2><h3 id='📝-文案内容'><span>📝 文案内容</span></h3><p><span>#</span><span> 需求：上海武康路半日逛吃指南，要求标注拍照机位和甜品店人均消费，文风带“松弛感”标签。</span></p><p><span>上海的浪漫，有一半都藏在武康路的梧桐树影里。不用赶时间，就在这里虚度半日，把生活调成慢倍速。</span></p><p><span>今天不谈攻略，只谈感受。从武康大楼开始，一路慢悠悠地晃到安福路。不是为了打卡而打卡，只是想感受一下风吹过树叶的声音，和那种恰到好处的法式慵懒。</span></p><p><span>📸 治愈系拍照机位</span></p><p><span>武康大楼最佳机位：不要挤在马路边！去对面的余庆路路口，利用红绿灯做前景，人少景全，还能拍到车流穿梭的电影感。记得穿低饱和度的衣服，和红砖墙最配。</span></p><p><span>巴金故居门口：那扇铁门和斑驳的墙，下午三四点的阳光洒下来，侧身回眸，胶片感拉满。不需要看镜头，假装在看树上的叶子。</span></p><p><span>各种不知名的小弄堂：不要刻意摆拍，抓拍走路时的背影，或者低头看树叶的瞬间，最自然。光影是最好的滤镜。</span></p><p><span>🍰 逛吃补给站</span></p><p><span>RAC Bar：安福路上的老网红了。坐在外摆区看来来往往的人，点一份可丽饼加咖啡，看着云朵发呆。人均：60r。</span></p><p><span>Sunflair：就在武康大楼旁边，冰淇淋造型很好看，拿着冰淇淋对着大楼拍，经典出片。味道也很浓郁。人均：40r。</span></p><p><span>Gentle Maker：一家很低调的咖啡店，木质装修很温暖，适合躲进去避避暑。手冲咖啡很香，配一块巴斯克蛋糕刚刚好。人均：50r。</span></p><p><span>在上海，最不缺的就是精致，但难得的是这份偷得浮生半日闲的惬意。下次来武康路，试着走慢一点，你会发现不一样的风景。</span></p><p><span>#</span><span>上海 #武康路 #Citywalk #松弛感 #上海探店 #周末去哪儿 #武康路拍照</span></p><h3 id='🖼️-图片展示'><span>🖼️ 图片展示</span></h3><p><img src="Outputs/上海武康路半日逛吃指南，要求标注拍照机位和甜品店人均消费，文风带松弛感标签。/image_1.jpg" alt="image_1.jpg" style="zoom:33%;" /><span> </span><img src="Outputs/上海武康路半日逛吃指南，要求标注拍照机位和甜品店人均消费，文风带松弛感标签。/image_2.jpg" alt="image_2.jpg" style="zoom:33%;" /><span> </span><img src="Outputs/上海武康路半日逛吃指南，要求标注拍照机位和甜品店人均消费，文风带松弛感标签。/image_3.jpg" alt="image_3.jpg" style="zoom:33%;" /><span> </span></p><p>&nbsp;</p><br><hr /><br><h2 id='周末露营装备清单-需按收纳顺序排列-强调轻量化和必备安全物品-附装备实拍图'><span>周末露营装备清单 需按收纳顺序排列 强调轻量化和必备安全物品 附装备实拍图</span></h2><h3 id='📝-文案内容-2'><span>📝 文案内容</span></h3><p><span>#</span><span> 需求：周末露营装备清单 需按收纳顺序排列 强调“轻量化”和必备安全物品 附装备实拍图</span></p><p><span>终于整理出来啦！周末去露营，真的不想背大包小包，累死个人！🤯 这次我把我的轻量化装备清单按收纳顺序全公开，主打一个精致又轻松！🌿✨ 每一样都是我精挑细选的，照着买绝对不踩雷！💖</span></p><p><span>🎒 收纳第一层：大件打底</span>
+<span>1️⃣ 帐篷：一定要选轻量化帐！我这款才1.5kg，搭建超快，防雨性也一级棒！⛺️🌧️</span>
+<span>2️⃣ 睡袋：信封式睡袋最舒服，压缩后只有手掌大，晚上睡觉暖暖的！🛌🔥</span>
+<span>3️⃣ 防潮垫：抛弃沉重的充气垫吧，EVA蛋槽垫才是轻量化的神，还能保暖！🥚✨</span></p><p><span>🍱 收纳第二层：野餐快乐源泉</span>
+<span>1️⃣ 炉具：卡式炉搭配高山气罐，煮咖啡、煎牛排一气呵成，幸福感爆棚！☕️🥩</span>
+<span>2️⃣ 餐具：钛合金杯子和碗，虽然贵一点点，但是真的轻！而且拍照超级有质感！🥤📸</span>
+<span>3️⃣ 食物：带些半成品，洗切好的蔬菜、腌制好的肉类，省时又省力！🥗🍖</span></p><p><span>👕 收纳第三层：衣物与杂物</span>
+<span>1️⃣ 衣物：速干衣裤是标配，早晚温差大，带件轻薄羽绒马甲准没错！🧥🌬️</span>
+<span>2️⃣ 照明：复古煤油灯氛围感拉满，头灯是晚上上厕所的安全卫士！💡🔦</span>
+<span>3️⃣ 椅子：为了减负，我换成了超轻折叠椅，坐在草地上看夕阳简直太美了！🪑🌅</span></p><p><span>🚨 收纳第四层：必备安全物品（重中之重！）</span>
+<span>1️⃣ 急救包：创可贴、碘伏棉签、止泻药、抗过敏药，野外生病真的很难搞！💊🩹</span>
+<span>2️⃣ 工具：多功能工兵铲，既能搭帐篷天幕，又能防身，安全感满满！⛏️🛡️</span>
+<span>3️⃣ 电源：大容量户外电源或充电宝，保持手机有电，关键时刻能救命！🔋📱</span>
+<span>4️⃣ 驱蚊水：夏天的草地是蚊子的天堂，不想被咬成包一定要带！🦟🚫</span></p><p><span>这套装备背起来毫无压力，周末逃离城市计划通！🏃‍♀️🌲 大家还有什么私藏的轻量化装备吗？快在评论区告诉我呀！💬👇</span></p><p><span>#</span><span>露营 #周末去哪儿 #露营装备 #轻量化露营 #露营清单 #户外 #新手露营 #安全露营 #露营装备分享</span></p><h3 id='🖼️-图片展示-2'><span>🖼️ 图片展示</span></h3><p><img src="Outputs/周末露营装备清单 需按收纳顺序排列 强调轻量化和必备安全物品 附装备实拍图/image_1.jpg" alt="image_1.jpg" style="zoom:22%;" /><span> </span><img src="Outputs/周末露营装备清单 需按收纳顺序排列 强调轻量化和必备安全物品 附装备实拍图/image_2.jpg" alt="image_2.jpg" style="zoom:22%;" /><span> </span><img src="Outputs/周末露营装备清单 需按收纳顺序排列 强调轻量化和必备安全物品 附装备实拍图/image_3.jpg" alt="image_3.jpg" style="zoom:22%;" /><span> </span></p><p>&nbsp;</p><br><hr /><br><h2 id='在家自制健康减脂餐一周食谱-要求标注每餐卡路里和准备时间-重点推荐十分钟快手菜'><span>在家自制健康减脂餐一周食谱 要求标注每餐卡路里和准备时间 重点推荐十分钟快手菜</span></h2><h3 id='📝-文案内容-3'><span>📝 文案内容</span></h3><p><span>#</span><span> 需求：在家自制健康减脂餐一周食谱 要求标注每餐卡路里和准备时间 重点推荐“十分钟快手菜”</span></p><p><span>姐妹们！👋 谁说减脂餐只能吃草？谁说没时间做饭就不能瘦？🤔 今天给大伙儿整理了一份【在家自制健康减脂餐一周食谱】📝，亲测有效，好吃不胖！🥗 尤其是咱们打工人和学生党，一定要看过来！👀 重点来了！全是【十分钟快手菜】⏰，手残党也能轻松搞定！👩‍🍳</span></p><p><span>✅ 周一：元气满满开启新的一周</span>
+<span>🥗 菜品：黑椒牛柳滑蛋饭</span>
+<span>🔥 热量：约 380 大卡</span>
+<span>⏰ 时间：10 分钟</span>
+<span>👉 做法：牛柳切条加黑胡椒腌制，鸡蛋打散，锅里少油炒熟牛柳，倒入蛋液滑熟即可，盖在杂粮饭上！绝绝子！😋</span></p><p><span>✅ 周二：清爽低卡日</span>
+<span>🥗 菜品：虾仁滑蛋豆腐</span>
+<span>🔥 热量：约 320 大卡</span>
+<span>⏰ 时间：10 分钟</span>
+<span>👉 做法：嫩豆腐切块，虾仁去线，一起炒熟，最后淋上少许生抽，嫩滑到不行！🍤</span></p><p><span>✅ 周三：解馋抗饿</span>
+<span>🥗 菜品：低脂版鸡胸肉三明治</span>
+<span>🔥 热量：约 350 大卡</span>
+<span>⏰ 时间：8 分钟</span>
+<span>👉 做法：全麦面包夹上煎好的鸡胸肉、生菜片和番茄片，挤一点低脂沙拉酱，咬一口超满足！🥪</span></p><p><span>✅ 周四：简单快手</span>
+<span>🥗 菜品：蚝油生菜配煎蛋</span>
+<span>🔥 热量：约 280 大卡</span>
+<span>⏰ 时间：5 分钟</span>
+<span>👉 做法：生菜焯水淋蚝油，鸡蛋单面煎，简单又健康，懒人必备！🥬</span></p><p><span>✅ 周五：海鲜大餐</span>
+<span>🥗 菜品：芦笋炒鱿鱼</span>
+<span>🔥 热量：约 300 大卡</span>
+<span>⏰ 时间：10 分钟</span>
+<span>👉 做法：鱿鱼焯水切圈，芦笋切段，大火爆炒，鲜味十足！🦑</span></p><p><span>✅ 周六：周末犒劳</span>
+<span>🥗 菜品：香煎三文鱼配时蔬</span>
+<span>🔥 热量：约 450 大卡</span>
+<span>⏰ 时间：12 分钟</span>
+<span>👉 做法：三文鱼煎至两面金黄，搭配西兰花和胡萝卜，颜值高营养好！🐟</span></p><p><span>✅ 周日：清肠排毒</span>
+<span>🥗 菜品：番茄金针菇豆腐汤</span>
+<span>🔥 热量：约 200 大卡</span>
+<span>⏰ 时间：10 分钟</span>
+<span>👉 做法：番茄炒出沙，加水煮开，放入金针菇和豆腐，酸爽开胃！🍅</span></p><p><span>💡 减脂小贴士：</span>
+<span>1️⃣ 油盐要控制，尽量用橄榄油或不粘锅少油烹饪！🥘</span>
+<span>2️⃣ 每天喝够 2000ml 水，提高代谢！💧</span>
+<span>3️⃣ 细嚼慢咽，给大脑一点反应时间！🧠</span></p><p><span>姐妹们，这套食谱真的太适合咱们这种又想瘦又没时间的人了！🏃‍♀️ 赶紧点赞收藏🌟，这周就开始安排上！期待你们的打卡反馈哦！💖 看到这里不点个关注嘛？以后每天给你们分享健康美食！👇</span></p><p><span>#</span><span>减脂餐 #健康减脂 #一周食谱 #十分钟快手菜 #低卡料理 #减脂日记 #在家减脂 #健康饮食 #减脂打卡 #掉秤</span></p><h3 id='🖼️-图片展示-3'><span>🖼️ 图片展示</span></h3><p><img src="Outputs/在家自制健康减脂餐一周食谱 要求标注每餐卡路里和准备时间 重点推荐十分钟快手菜/image_1.jpg" alt="image_1.jpg" style="zoom:22%;" /><span> </span><img src="Outputs/在家自制健康减脂餐一周食谱 要求标注每餐卡路里和准备时间 重点推荐十分钟快手菜/image_2.jpg" alt="image_2.jpg" style="zoom:22%;" /><span> </span><img src="Outputs/在家自制健康减脂餐一周食谱 要求标注每餐卡路里和准备时间 重点推荐十分钟快手菜/image_3.jpg" alt="image_3.jpg" style="zoom:22%;" /><span> </span></p><p>&nbsp;</p><br><hr /><br><h2 id='复古胶片感调色教程-针对城市街景和人像分别提供参数-需用具体app演示步骤'><span>复古胶片感调色教程 针对城市街景和人像分别提供参数 需用具体APP演示步骤</span></h2><h3 id='📝-文案内容-4'><span>📝 文案内容</span></h3><p><span>#</span><span> 需求：复古胶片感调色教程 针对城市街景和人像分别提供参数 需用具体APP演示步骤</span></p><p><span>哇！终于整理出来了！📸 大家一直私信轰炸问我的那种复古胶片感到底是怎么调出来的，今天毫无保留地全部分享给你们！✨ 真的超级有氛围感，随便拍拍都像电影画面一样🎬。不管是扫街还是拍人像，这套参数都绝绝子！🔥 赶紧码住，不然刷着刷着就找不到啦！💖</span></p><p><span>我们今天用到的APP是醒图📱，因为它真的太好用了，而且参数调整很细腻，新手也能秒上手！💯 保姆级教程来咯，手把手教大家调出那种日系复古胶片风！🎞️</span></p><p><span>1️⃣ 城市街景篇 🏙️</span>
+<span>街景的重点在于那种陈旧的质感和光影的对比，要有那种90年代的街头故事感！🌆</span>
+<span>📷 第一步：光感 -20，亮度 +10（稍微压暗一点，画面质感立马提升）</span>
+<span>📷 第二步：对比度 +15，高光 -30，阴影 +20（拉大光比，保留暗部细节）</span>
+<span>📷 第三步：色温 +15，色调 -10（整体偏暖黄一点点，阴影带点青调）</span>
+<span>📷 第四步：HUI调整，橙色色相 -5，饱和度 -10（让建筑和街道的颜色更耐看，不刺眼）</span>
+<span>📷 第五步：颗粒 +25，锐化 +10（这一步是灵魂！增加胶片的粗糙感，绝了！）</span>
+<span>调完之后，那种老电影的滤镜感立马就出来了！🛵 真的太爱了！💕</span></p><p><span>2️⃣ 人像篇 👩🎨</span>
+<span>人像要温柔一点，皮肤质感要通透，不能像街景那么粗砺，要带点朦胧美！🌸</span>
+<span>📷 第一步：光感 +15，亮度 +5（让脸蛋看起来白皙透亮）</span>
+<span>📷 第二步：对比度 -10，高光 -15（柔化光线，自带柔光滤镜效果）</span>
+<span>📷 第三步：色温 +10，色调 +5（整体氛围暖洋洋的，显得人很温柔）</span>
+<span>📷 第四步：HUI调整，橙色明度 +20（这是关键！皮肤瞬间白一个度，黄皮救星！）</span>
+<span>📷 第五步：褪色 +15，颗粒 +20（营造那种旧照片的回忆感，氛围感拉满）</span>
+<span>这样调出来的人像，那种日杂模特的感觉一下子就有了！📚 谁拍谁好看！😭</span></p><p><span>是不是超级简单！😜 宝子们赶紧去试试看！记得要根据原图的光线情况微调哦☀️。如果觉得有用，记得给我点个小红心❤️，收藏起来慢慢练！📂 也可以把你们调好的图发在评论区，我来帮看！👀 关注我，下期分享更多修图干货！🎁</span></p><p><span>#</span><span>复古胶片 #醒图教程 #调色参数 #城市街拍 #人像摄影 #拍照姿势 #修图教程 #胶片感 #氛围感 #拍照技巧 #手机摄影 #复古滤镜</span></p><h3 id='🖼️-图片展示-4'><span>🖼️ 图片展示</span></h3><p><img src="Outputs/复古胶片感调色教程 针对城市街景和人像分别提供参数 需用具体APP演示步骤/image_1.jpg" alt="image_1.jpg" style="zoom:22%;" /><span> </span><img src="Outputs/复古胶片感调色教程 针对城市街景和人像分别提供参数 需用具体APP演示步骤/image_2.jpg" alt="image_2.jpg" style="zoom:22%;" /><span> </span><img src="Outputs/复古胶片感调色教程 针对城市街景和人像分别提供参数 需用具体APP演示步骤/image_3.jpg" alt="image_3.jpg" style="zoom:22%;" /><span> </span></p><p>&nbsp;</p><br><hr /><br><h2 id='大理洱海自驾vlog脚本框架包含网红s弯定位民宿窗景对比民族风披肩穿搭建议'><span>大理洱海自驾vlog脚本框架，包含网红S弯定位、民宿窗景对比、民族风披肩穿搭建议。</span></h2><h3 id='📝-文案内容-5'><span>📝 文案内容</span></h3><p><span>#</span><span> 需求：大理洱海自驾vlog脚本框架，包含网红S弯定位、民宿窗景对比、民族风披肩穿搭建议。</span></p><p><span>谁懂啊家人们！在大理环海自驾真的太治愈了，随手一拍就是电影感大片！这次整理了一份超详细的Vlog脚本框架，包含机位、穿搭和避雷指南，建议先收藏再出发，不然划走就找不到啦！</span></p><p><span>🚗 关于自驾路线与氛围感</span>
+<span>租一辆甲壳虫或者smart，一定要选晴天出发！沿着环海西路慢慢开，把车窗降下来，风灌进来的那一刻，Vlog的开头就有了。不用刻意找景，左手苍山右手洱海，BGM配上轻快的民谣，这就是自由的味道。</span></p><p><span>📍 网红S弯拍摄机位</span>
+<span>定位直接搜：磻溪村S弯。</span>
+<span>这里真的太出片了，但是人多！一定要早起，早上8点前到达，整个S弯都是你的。</span></p><ul><li><p><span>运镜技巧：镜头低角度仰拍，把骑行的人和海平线放在同一个画面里。</span></p></li><li><p><span>动态捕捉：不要摆拍，假装在看海，或者背对着镜头慢慢走，让摄影师抓拍风吹头发的瞬间。</span></p></li></ul><p><span>🏠 民宿窗景对比美学</span>
+<span>选民宿真的有讲究，窗景直接决定了Vlog的质感！</span></p><ul><li><p><span>避雷：不要只看滤镜图，一定要问清楚是不是“一线无遮挡海景”。</span></p></li><li><p><span>拍摄技巧：把纱帘拉一半，制造朦胧感。人坐在窗边看书或者发呆，逆光拍摄，那种慵懒的氛围感瞬间拉满。记得准备一杯咖啡或者鲜花做道具。</span></p></li></ul><p><span>🧣 民族风披肩穿搭公式</span>
+<span>来大理不披个披肩等于没来！但是颜色选错真的很显黑。</span></p><ul><li><p><span>显白首选：克莱因蓝、酒红色、藏青色。</span></p></li><li><p><span>穿搭公式：白T恤+牛仔裤+亮色披肩。</span></p></li><li><p><span>创意玩法：披肩不要老老实实披在肩上，试着当头巾，或者系在腰间当半身裙。拍摄时把披肩扬起来，抓拍最自然的那一帧，绝绝子！</span></p></li></ul><p><span>大理的风是自由的，你也是。带上这份脚本，去记录属于你的夏天吧！还有什么想知道的，评论区告诉我呀～</span></p><p><span>#</span><span>大理旅行 #洱海自驾 #vlog教程 #大理穿搭 #治愈系风景 #小众旅行地 #摄影技巧</span></p><h3 id='🖼️-图片展示-5'><span>🖼️ 图片展示</span></h3><p><img src="Outputs/大理洱海自驾vlog脚本框架，包含网红S弯定位、民宿窗景对比、民族风披肩穿搭建议。/image_1.jpg" alt="image_1.jpg" style="zoom:33%;" /><span> </span><img src="Outputs/大理洱海自驾vlog脚本框架，包含网红S弯定位、民宿窗景对比、民族风披肩穿搭建议。/image_2.jpg" alt="image_2.jpg" style="zoom:33%;" /><span> </span><img src="Outputs/大理洱海自驾vlog脚本框架，包含网红S弯定位、民宿窗景对比、民族风披肩穿搭建议。/image_3.jpg" alt="image_3.jpg" style="zoom:33%;" /><span> </span></p><p>&nbsp;</p><br><hr /><br><h2 id='宠物猫咪居家摄影指南-需包含自然光拍摄技巧常见玩具互动抓拍方法-结尾添加猫咪表情包制作教程'><span>宠物猫咪居家摄影指南 需包含自然光拍摄技巧、常见玩具互动抓拍方法 结尾添加猫咪表情包制作教程</span></h2><h3 id='📝-文案内容-6'><span>📝 文案内容</span></h3><p><span>#</span><span> 需求：宠物猫咪居家摄影指南 需包含自然光拍摄技巧、常见玩具互动抓拍方法 结尾添加“猫咪表情包”制作教程</span></p><p><span>姐妹们！谁懂啊！😭 每次想给家里的逆子拍美照，结果全是糊糊的煤球？🐈💨 别气别气！今天把压箱底的居家猫咪摄影秘籍都交出来！📸✨ 只要有手机，也能拍出ins风大片，还能顺便自制专属表情包！🎉</span></p><p><span>✨ 自然光才是最好的滤镜 ✨</span>
+<span>1️⃣ 窗边大法好：家里的落地窗就是天然影棚！🪟 把猫咪抱到窗边，利用侧逆光，毛流感瞬间拉满，那个光泽感简直绝绝子！🌟</span>
+<span>2️⃣ 黄金拍摄时间：避开正午的大太阳！🙅‍♀️ 早上9-11点或者下午3-5点，光线最柔和，拍出来的猫咪皮肤粉嫩嫩的，眼神光也是亮晶晶的！💎</span>
+<span>3️⃣ 坚决不开闪光灯：这一点千万要记住！❌ 闪光灯不仅会吓到主子，还容易拍出恐怖的红眼怪，我们要的是自然美！🚫👻</span></p><p><span>🎾 玩具互动抓拍小技巧 🎾</span>
+<span>1️⃣ 逗猫棒悬空法：把逗猫棒举在手机镜头上方，让猫咪盯着看，这样就能抓拍到它专注又犀利的眼神！🐦👀 简直帅炸了！</span>
+<span>2️⃣ 连拍模式走起：猫咪动作太快？别犹豫，直接打开连拍！📱 咔咔咔一顿按，不管是扑咬还是起飞，总有一张能封神！🚀</span>
+<span>3️⃣ 趴下拍更有爱：一定要蹲下甚至趴在地上！🐾 和猫咪保持同一视线高度，这样拍出来的画面更有故事感，仿佛进入了它的奇妙世界！🌍💖</span></p><p><span>🎉 结尾彩蛋：猫咪表情包制作教程 🎉</span>
+<span>想不想拥有独一无二的猫咪表情包？手把手教你！👇</span>
+<span>1️⃣ 疯狂抓拍：趁猫咪打哈欠、翻白眼、发呆或者做鬼脸的时候，手机时刻准备着！😴🤪 越丑越真实越好笑！</span>
+<span>2️⃣ 简单修图：打开修图软件（比如黄油相机、美图秀秀），加上大号的花字！📝 文案要搞怪，比如“你瞅啥”、“朕乏了”、“铲屎的快滚”。💬</span>
+<span>3️⃣ 保存斗图：一键保存，发给闺蜜和对象斗图，快乐就是这么简单！🤣🔥</span></p><p><span>快去试试吧！拍完记得来交作业哦！📥 看看谁家的主子最上镜！💖</span></p><p><span>#</span><span>猫咪摄影 #宠物摄影 #拍照技巧 #猫咪日常 #萌宠出道 #新手养猫 #手机摄影 #表情包制作</span></p><h3 id='🖼️-图片展示-6'><span>🖼️ 图片展示</span></h3><p><img src="Outputs/宠物猫咪居家摄影指南 需包含自然光拍摄技巧、常见玩具互动抓拍方法 结尾添加猫咪表情包制作教程/image_1.jpg" alt="image_1.jpg" style="zoom:22%;" /><span> </span><img src="Outputs/宠物猫咪居家摄影指南 需包含自然光拍摄技巧、常见玩具互动抓拍方法 结尾添加猫咪表情包制作教程/image_2.jpg" alt="image_2.jpg" style="zoom:22%;" /><span> </span><img src="Outputs/宠物猫咪居家摄影指南 需包含自然光拍摄技巧、常见玩具互动抓拍方法 结尾添加猫咪表情包制作教程/image_3.jpg" alt="image_3.jpg" style="zoom:22%;" /><span> </span></p><p>&nbsp;</p><br><hr /><br><h2 id='小众书店探店合集-要求标注各区代表性书店的装修风格和选书特点-结尾添加书籍盲盒彩蛋'><span>小众书店探店合集 要求标注各区代表性书店的装修风格和选书特点 结尾添加书籍盲盒彩蛋</span></h2><h3 id='📝-文案内容-7'><span>📝 文案内容</span></h3><p><span>#</span><span> 需求：小众书店探店合集 要求标注各区代表性书店的装修风格和选书特点 结尾添加书籍盲盒彩蛋</span></p><p><span>姐妹们！周末不知道去哪儿玩吗？🤔 别再去人挤人的网红咖啡馆啦！🙅‍♀️ 今天整理了一份超全的小众书店探店合集，每一个都是我私藏的精神避难所！📚✨ 真的太好拍了，而且书单质量超高！快艾特你的读书搭子一起来看吧！👯‍♀️💖</span></p><p><span>📍 1️⃣ 老城区里的时光胶囊 🕰️</span>
+<span>这家店藏在一条不起眼的巷子里，推开门就像穿越了一样！🚪 装修是那种浓浓的复古南洋风，深色木质书架配上暖黄的灯光，氛围感直接拉满！🌟🕯️ 每一个角落都摆放着老式打字机和黑胶唱片，真的太有味道了！🎶📻</span>
+<span>📖 选书特点：这里主打绝版书和旧书，特别是关于城市历史和人文社科类的，淘到就是赚到！📜🧐 很多书外面都买不到哦！</span></p><p><span>📍 2️⃣ 艺术区的工业风美学 🏭🎨</span>
+<span>极简主义爱好者的天堂！🖤 高挑的层高，巨大的落地窗，水泥灰的墙面，随手一拍都是大片！📸🖼️ 这里甚至还有个专门的咖啡烘焙区，书香混合着咖啡香，简直绝绝子！☕️😋</span>
+<span>📖 选书特点：艺术、设计、建筑类书籍超级全，还有很多外文原版杂志，视觉控绝对会爱惨这里！👁️🌍 想找灵感的宝子们一定要来！</span></p><p><span>📍 3️⃣ 街角的治愈系小屋 🏡🌿</span>
+<span>像是宫崎骏动画里的场景，原木色的家具，到处都摆满了绿植，阳光洒进来的时候真的太温柔了！☀️🌻 店里还有两只可爱的猫咪，会陪着你一起看书哦！🐱🐈</span>
+<span>📖 选书特点：以散文、诗歌和治愈系小说为主，还有很多独立出版的绘本，读起来心里暖暖的！🥰🍵 适合下午发呆放空！</span></p><p><span>🎁 彩蛋时间！书籍盲盒大放送！🎁</span>
+<span>既然看到这里了，怎么能没有福利呢！🎉 我在评论区藏了一个“书籍盲盒”，只要你在评论区留下你最近想读的一本书，我就随机抽一位宝子送出一份神秘书单！📚💌 或者直接去店里问问店员有没有隐藏款盲盒哦！🤫✨ 据说盲盒里藏着老板的私藏书单呢！🤫📝</span></p><p><span>好啦，今天的分享就到这里！希望能给你的周末增添一点书香气息！💨📚 记得点赞收藏，不然划走就找不到啦！❤️🔔 我们下期见！👋</span></p><p><span>#</span><span>小众书店 #周末去哪儿 #书店探店 #我的私人书单 #阅读 #治愈系风景 #城市漫游 #书籍盲盒 #宝藏店铺 #氛围感</span></p><h3 id='🖼️-图片展示-7'><span>🖼️ 图片展示</span></h3><p><img src="Outputs/小众书店探店合集 要求标注各区代表性书店的装修风格和选书特点 结尾添加书籍盲盒彩蛋/image_1.jpg" alt="image_1.jpg" style="zoom:22%;" /><span> </span><img src="Outputs/小众书店探店合集 要求标注各区代表性书店的装修风格和选书特点 结尾添加书籍盲盒彩蛋/image_2.jpg" alt="image_2.jpg" style="zoom:22%;" /><span> </span><img src="Outputs/小众书店探店合集 要求标注各区代表性书店的装修风格和选书特点 结尾添加书籍盲盒彩蛋/image_3.jpg" alt="image_3.jpg" style="zoom:22%;" /><span> </span></p><p>&nbsp;</p><br><hr /><br><h2 id='新手健身房入门跟练计划需周课表器械使用图解警告提示常见错误姿势'><span>新手健身房入门跟练计划，需周课表+器械使用图解，警告提示常见错误姿势。</span></h2><h3 id='📝-文案内容-8'><span>📝 文案内容</span></h3><p><span>#</span><span> 需求：新手健身房入门跟练计划，需周课表+器械使用图解，警告提示“常见错误姿势”。</span></p><p><span>去了健身房只会跑步？看着一堆铁疙瘩不敢动？怕练出大肌肉腿或者练废了腰？</span></p><p><span>别慌！这篇【新手小白健身房保姆级攻略】一定要码住！从周课表到器械使用，再到那些让你受伤的“致命错误”，一次性给你讲明白！照着练，不出一个月，你就能自信地在健身房横着走！</span></p><p><span>📅 新手一周跟练计划（建议收藏截图）</span></p><p><span>周一：胸+三头（推为主）</span></p><ul><li><p><span>哑铃卧推 4组x12次</span></p></li><li><p><span>坐姿推胸 4组x12次</span></p></li><li><p><span>绳索下压 4组x15次</span></p></li></ul><p><span>周二：有氧+核心（燃脂日）</span></p><ul><li><p><span>椭圆机或爬坡 30分钟</span></p></li><li><p><span>平板支撑 4组x45秒</span></p></li><li><p><span>卷腹 4组x20次</span></p></li></ul><p><span>周三：背+二头（拉为主）</span></p><ul><li><p><span>高位下拉 4组x12次</span></p></li><li><p><span>坐姿划船 4组x12次</span></p></li><li><p><span>哑铃弯举 4组x12次</span></p></li></ul><p><span>周四：休息日（好好睡觉，多吃蛋白质）</span></p><p><span>周五：腿+臀（举铁日）</span></p><ul><li><p><span>倒蹬机 4组x12次</span></p></li><li><p><span>哑铃深蹲 4组x12次</span></p></li><li><p><span>臀桥 4组x15次</span></p></li></ul><p><span>周六：户外活动或瑜伽（放松身心）</span></p><p><span>周日：休息日（准备下周循环）</span></p><p><span>🏋️‍♀️ 常用器械使用口诀</span></p><p><span>坐姿推胸：椅子高度适中，手肘微屈，推到顶峰停顿1秒，感受胸肌收缩。</span></p><p><span>高位下拉：挺胸沉肩，下拉到锁骨位置，不要耸肩！是用背的力量，不是手臂硬拉。</span></p><p><span>倒蹬机：脚放踏板中间，屁股紧贴椅背，膝盖不要锁死，下放要有控制，不要直接砸下去。</span></p><p><span>⚠️ 警告！这些错误姿势千万别做</span></p><blockquote><p><span>深蹲时膝盖内扣</span>
+<span>这是大忌！膝盖一定要和脚尖方向一致，不然膝盖真的会废。想象两腿中间夹着一个纸团，不要把它挤扁。</span></p></blockquote><blockquote><p><span>硬拉弓背</span>
+<span>腰背一定要挺直，核心收紧！如果你感觉腰酸背痛，说明姿势错了，立刻停止，降低重量。记住：宁轻勿假！</span></p></blockquote><blockquote><p><span>做卷腹脖子用力</span>
+<span>手只是轻轻扶着耳朵，不要抱头硬拉！是用腹肌的力量把身体卷起来，不是用脖子把头拉起来。做完脖子酸说明你做错了。</span></p></blockquote><p><span>💡 给新手的碎碎念</span></p><p><span>刚开始去健身房真的不用害怕，大家都在忙着照镜子看自己呢，根本没人注意你！穿得舒服点，带上耳机，拿起哑铃，你就是最酷的崽！</span></p><p><span>还没想好明天练什么的，评论区扣1，我来监督你！</span></p><p><span>#</span><span>健身房新手 #健身计划 #女生健身 #减脂 #健身房器械 #新手健身 #健身打卡 #运动日常 #减肥逆袭</span></p><h3 id='🖼️-图片展示-8'><span>🖼️ 图片展示</span></h3><p><img src="Outputs/新手健身房入门跟练计划，需周课表+器械使用图解，警告提示常见错误姿势。/image_1.jpg" alt="image_1.jpg" style="zoom:33%;" /><span> </span><img src="Outputs/新手健身房入门跟练计划，需周课表+器械使用图解，警告提示常见错误姿势。/image_2.jpg" alt="image_2.jpg" style="zoom:33%;" /><span> </span><img src="Outputs/新手健身房入门跟练计划，需周课表+器械使用图解，警告提示常见错误姿势。/image_3.jpg" alt="image_3.jpg" style="zoom:33%;" /><span> </span></p><p>&nbsp;</p><br><hr /><br><h2 id='梨形身材职场通勤穿搭合集要求标注单品品牌和价格区间封面图需纵向拼图展示'><span>梨形身材职场通勤穿搭合集，要求标注单品品牌和价格区间，封面图需纵向拼图展示。</span></h2><h3 id='📝-文案内容-9'><span>📝 文案内容</span></h3><p><span>#</span><span> 需求：梨形身材职场通勤穿搭合集，要求标注单品品牌和价格区间，封面图需纵向拼图展示。</span></p><p><span>梨形身材的姐妹们，是不是每次买裤子都要哭？胯宽、假胯宽、大腿粗，明明上半身很瘦，下半身却像两个秤砣？</span></p><p><span>其实梨形身材穿好了真的很有女人味！只要掌握扬长避短的公式，职场通勤也能穿出纸片人的既视感。今天整理了4套我私藏的梨形显瘦穿搭，从百元到轻奢都有，直接照抄作业！</span></p><p><span>Look 1：藏肉神器 A字裙套装</span>
+<span>这套真的谁穿谁瘦！重点在于上宽下窄，利用挺括的西装外套增加肩部量感，完美平衡宽胯，A字裙直接把大腿肉肉藏得严严实实。</span></p><p><span>单品：</span>
+<span>西装外套：Massimo Dutti（500-800元）</span>
+<span>内搭吊带：Uniqlo U系列（99元）</span>
+<span>高腰A字半裙：Zara（299元）</span>
+<span>鞋子：黑色乐福鞋（300元左右）</span></p><p><span>Look 2：干练大女主衬衫配直筒裤</span>
+<span>不想穿裙子的时候，直筒裤就是梨形的本命！一定要选垂坠感好的面料，千万别选紧身包臀的。把衬衫扎进裤子里，腰线拉高，腿长一米八。</span></p><p><span>单品：</span>
+<span>垂感衬衫：COS（600-900元）</span>
+<span>直筒西装裤：Theory（1000-1500元）</span>
+<span>极简腰带：H&amp;M（99元）</span>
+<span>包包：Polene（800-1200元）</span></p><p><span>Look 3：温柔针织配阔腿裤</span>
+<span>周五或者见客户的时候，这套既温柔又有气场。V领设计拉长脖子线条，阔腿裤直接把腿型拉直，走路带风。</span></p><p><span>单品：</span>
+<span>V领针织衫：Sandro（800-1200元）</span>
+<span>高腰阔腿裤：UR（300-400元）</span>
+<span>尖头高跟鞋：Stuart Weitzman（1500-2000元）</span></p><p><span>Look 4：马甲叠穿显高挑</span>
+<span>小个子梨形看过来！马甲能增加上半身的量感，视觉上平衡宽胯，百褶裙灵动又减龄，通勤也不会显得太幼稚。</span></p><p><span>单品：</span>
+<span>白T恤：Basic House（150元）</span>
+<span>西装马甲：H&amp;M（200-300元）</span>
+<span>百褶长裙：优衣库（299元）</span></p><p><span>梨形身材穿搭核心口诀：</span></p><ol start='' ><li><p><span>提高腰线，制造三七分比例</span></p></li><li><p><span>适当露出最细的脚踝</span></p></li><li><p><span>增加肩部线条，平衡下半身量感</span></p></li></ol><p><span>这四套你们最喜欢哪一套？评论区告诉我，或者把你的尺码困扰发出来，我来帮你参谋！</span></p><p><span>#</span><span>梨形身材 #职场穿搭 #通勤穿搭 #显瘦穿搭 #梨形身材穿搭 #ootd #我的穿搭日记 #职场打工人 #微胖穿搭 #胶囊衣橱</span></p><h3 id='🖼️-图片展示-9'><span>🖼️ 图片展示</span></h3><p><img src="Outputs/梨形身材职场通勤穿搭合集，要求标注单品品牌和价格区间，封面图需纵向拼图展示。/image_1.jpg" alt="image_1.jpg" style="zoom:33%;" /><span> </span><img src="Outputs/梨形身材职场通勤穿搭合集，要求标注单品品牌和价格区间，封面图需纵向拼图展示。/image_2.jpg" alt="image_2.jpg" style="zoom:33%;" /><span> </span><img src="Outputs/梨形身材职场通勤穿搭合集，要求标注单品品牌和价格区间，封面图需纵向拼图展示。/image_3.jpg" alt="image_3.jpg" style="zoom:33%;" /><span> </span></p><p>&nbsp;</p><br><hr /><br><h2 id='租房改造ins风卧室教程列明pdd采购清单和改造耗时重点标注百元好物链接'><span>租房改造ins风卧室教程，列明PDD采购清单和改造耗时，重点标注百元好物链接。</span></h2><h3 id='📝-文案内容-10'><span>📝 文案内容</span></h3><p><span>#</span><span> 需求：租房改造ins风卧室教程，列明PDD采购清单和改造耗时，重点标注“百元好物”链接。</span></p><p><span>谁懂啊家人们！终于把那个又暗又丑的出租屋，变成了我梦里的ins风奶油小窝！😭 真的太香了，每天下班只想立刻飞奔回家！</span></p><p><span>其实改造真的不需要花大钱，也不需要砸墙动土。只要选对软装，几十块钱就能让房间大变样！今天把我的压箱底攻略和PDD采购清单全部交出来，手把手教你低成本逆袭！👇</span></p><p><span>🛒 必入PDD采购清单（亲测好用）</span></p><ol start='' ><li><p><span>奶油风遮光窗帘</span>
+<span>租房神器！一定要选遮光率高的，瞬间提升房间私密感和质感。</span></p></li><li><p><span>氛围感日落灯 [百元好物]</span>
+<span>这绝对是改造的灵魂！一开灯，整个房间瞬间有了电影滤镜，拍照巨出片，几十块钱的快乐谁懂！</span></p></li><li><p><span>蜜桃色/奶咖色四件套</span>
+<span>床品占据了卧室的一半视觉，一定要选纯棉的，颜色要耐看，那种慵懒感一下子就出来了。</span></p></li><li><p><span>长毛地毯 [百元好物]</span>
+<span>铺在床边，光脚踩上去软乎乎的，幸福感爆棚！而且还能遮住地板原本的瑕疵。</span></p></li><li><p><span>免打孔洞洞板</span>
+<span>收纳神器，用来放耳机、钥匙、发圈，墙上也不空了，还省了买收纳架的钱。</span></p></li></ol><p><span>⏰ 改造耗时记录</span></p><p><span>真的超级简单！我一个人只花了一个周六的下午，大概3个小时左右。</span>
+<span>擦灰整理1小时 + 铺床品挂窗帘1.5小时 + 调整装饰细节0.5小时。</span>
+<span>完全不需要请师傅，女生也能轻松搞定！</span></p><p><span>💡 改造小Tips</span></p><p><span>尽量统一房间色调，比如我就选了奶白色+原木色，这样看起来空间更大更整洁。</span>
+<span>灯光是关键，主灯可以关掉，多用台灯、落地灯、灯串来营造氛围。</span></p><p><span>租房不是将就，生活是自己的！希望这篇笔记能给你一点灵感，赶紧动起来吧！✨</span></p><p><span>#</span><span>租房改造 #ins风 #卧室改造 #平价好物 #租房 #软装搭配 #我的装修记录 #PDD好物 #百元好物</span></p><h3 id='🖼️-图片展示-10'><span>🖼️ 图片展示</span></h3><p><img src="Outputs/租房改造ins风卧室教程，列明PDD采购清单和改造耗时，重点标注百元好物链接。/image_1.jpg" alt="image_1.jpg" style="zoom:33%;" /><span> </span><img src="Outputs/租房改造ins风卧室教程，列明PDD采购清单和改造耗时，重点标注百元好物链接。/image_2.jpg" alt="image_2.jpg" style="zoom:33%;" /><span> </span><img src="Outputs/租房改造ins风卧室教程，列明PDD采购清单和改造耗时，重点标注百元好物链接。/image_3.jpg" alt="image_3.jpg" style="zoom:33%;" /><span> </span></p><p>&nbsp;</p><br><hr /><br><h2 id='考研自习室好物推荐需包含计时器降噪耳机等实物测评结尾加励志语录卡片'><span>考研自习室好物推荐，需包含计时器、降噪耳机等实物测评，结尾加励志语录卡片。</span></h2><h3 id='📝-文案内容-11'><span>📝 文案内容</span></h3><p><span>#</span><span> 需求：考研自习室好物推荐，需包含计时器、降噪耳机等实物测评，结尾加励志语录卡片。</span></p><p><span>考研人最怕什么？不是题太难，而是心太乱！</span>
+<span>自习室里翻书声、咳嗽声、甚至隔壁桌的抖腿声，都在疯狂试探你的底线。今天把压箱底的「沉浸式备考神器」掏出来，帮你把效率拉满，拒绝无效内耗！</span></p><p><span>🎧 降噪耳机：物理隔绝外界的结界</span>
+<span>别买那种只听个响的，要选ANC主动降噪强的！</span>
+<span>戴上的一瞬间，世界仿佛按下了静音键，只剩下笔尖在纸上摩擦的沙沙声，这种安全感真的绝了。</span>
+<span>推荐头戴式，虽然夏天稍微热点，但包裹感无敌，戴久了耳朵完全不疼。</span>
+<span>重点：千万不要连蓝牙听歌！纯降噪模式才是yyds，实在不行就听白噪音，歌词绝对是专注力的天敌。</span></p><p><span>⏳ 实体计时器：把时间具象化</span>
+<span>千万别用手机倒计时！看一眼时间，顺便回个消息，半小时就没了。</span>
+<span>这种复古的番茄钟，拧一下就开始，看着红色的倒计时一点点减少，紧迫感瞬间拉满。</span>
+<span>有的带滴答声，有的可以静音，看个人喜好。</span>
+<span>当你把时间变成看得见的进度条，你会发现，原来自己一天真的能专注10个小时。</span></p><p><span>✨ 还有一些提升幸福感的小细节</span>
+<span>比如一个贴合腰部的坐垫，久坐不累，脑子才能转得快；</span>
+<span>再比如一支速干的笔，写题不脏手，心情都会变好。</span></p><p><span>最后，送给正在坚持的你：</span></p><blockquote><p><span>“星光不问赶路人，时光不负有心人。</span>
+<span>你背单词时，阿拉斯加的鳕鱼正跃出水面；</span>
+<span>你算数学时，太平洋彼岸的海鸥振翅掠过。</span>
+<span>请相信，那些看似不起眼的日复一日，</span>
+<span>终会在将来的某一天，突然让你看到坚持的意义。”</span></p></blockquote><p><span>大家还有什么私藏的备考神器？评论区互相安利一下！</span>
+<span>加油，岸上见！</span></p><p><span>#</span><span>考研 #考研自习室 #备考好物 #沉浸式学习 #考研加油 #自律 #降噪耳机 #计时器 #学习日常 #研究生考试</span></p><h3 id='🖼️-图片展示-11'><span>🖼️ 图片展示</span></h3><p><img src="Outputs/考研自习室好物推荐，需包含计时器、降噪耳机等实物测评，结尾加励志语录卡片。/image_1.jpg" alt="image_1.jpg" style="zoom:33%;" /><span> </span><img src="Outputs/考研自习室好物推荐，需包含计时器、降噪耳机等实物测评，结尾加励志语录卡片。/image_2.jpg" alt="image_2.jpg" style="zoom:33%;" /><span> </span><img src="Outputs/考研自习室好物推荐，需包含计时器、降噪耳机等实物测评，结尾加励志语录卡片。/image_3.jpg" alt="image_3.jpg" style="zoom:33%;" /><span> </span></p><p>&nbsp;</p><br><hr /><br><h2 id='职场新人通勤包选购攻略-对比托特包双肩包腋下包的容量和材质-标注品牌和价格区间'><span>职场新人通勤包选购攻略 对比托特包、双肩包、腋下包的容量和材质 标注品牌和价格区间</span></h2><h3 id='📝-文案内容-12'><span>📝 文案内容</span></h3><p><span>#</span><span> 需求：职场新人通勤包选购攻略 对比托特包、双肩包、腋下包的容量和材质 标注品牌和价格区间</span></p><p><span>宝子们！早八通勤真的太痛苦了😭 每天背着像砖头一样的包挤地铁，肩膀都要断了💔 作为刚入职场的打工人，选对通勤包真的太重要了！今天就来给姐妹们扒一扒，到底哪种包包才是职场新人的本命通勤包🎒 让我们告别沉重，优雅上班✨</span></p><p><span>1️⃣ 托特包：容量王者，装得下全世界🌍</span>
+<span>托特包真的是打工人最离不开的！能装电脑、能装文件、甚至能装健身衣👕 但是！一定要注意自重！有些皮质托特包自重比电脑还重，那是真的要命🚫</span>
+<span>✅ 优点：容量巨大，取物方便，气场干练💼</span>
+<span>❌ 缺点：包身软塌容易变形，重物多了肩膀痛</span>
+<span>👜 品牌推荐：</span>
+<span>Longchamp 尼龙系列：轻便耐用，防水好打理，价格 500-1000r💰</span>
+<span>Celine 凯旋门老花：皮质硬挺，贵气十足，适合预算充足的姐妹，价格 15000r+💸</span>
+<span>Zara/UR 平价款：款式多，适合过渡期，价格 100-300r🏷️</span></p><p><span>2️⃣ 双肩包：解放双手，护脊神器💆‍♀️</span>
+<span>如果你通勤距离长，或者需要带电脑，双肩包绝对是首选🚀 现在的双肩包设计都很简约，完全不会显得幼稚哦👶</span>
+<span>✅ 优点：受力均匀，解放双手，防水耐磨🛡️</span>
+<span>❌ 缺点：夏天背容易出汗，有时候显得不够正式</span>
+<span>🎒 品牌推荐：</span>
+<span>Rains 防水背包：下雨天也不怕，极简风，颜值超高，价格 800-1200r🌧️</span>
+<span>Freitag 独一无二：环保回收材质，每个包都不同，个性十足，价格 1000-2000r♻️</span>
+<span>Doughnut/JanSport：性价比之王，学生党过渡首选，颜色多，价格 200-500r🌈</span></p><p><span>3️⃣ 腋下包：精致时髦，气场全开💃</span>
+<span>这种包真的太显气质了！上班开会背它，立马感觉气场两米八👠 但是容量真的感人，只能装下iPad mini和补妆包💄</span>
+<span>✅ 优点：造型感强，提升穿搭精致度，轻便小巧🧚‍♀️</span>
+<span>❌ 缺点：容量极小，带不了电脑，肩带细容易勒</span>
+<span>👛 品牌推荐：</span>
+<span>Polène Numéro Dix：法式慵懒，皮质软糯，设计感绝了，价格 2000-3000r🇫🇷</span>
+<span>By Far：复古漆皮，很有辨识度，适合凹造型，价格 1500-2500r🍒</span>
+<span>Songmont 菜篮子：国货之光，容量稍微大一点，自重轻，价格 500-1000r🇨🇳</span></p><p><span>总结一下给姐妹们📝</span>
+<span>📍 需要带电脑+挤地铁：选轻便双肩包，护腰护肩最重要！</span>
+<span>📍 办公文件多+追求气质：选皮质硬挺的托特包，能装又好看！</span>
+<span>📍 轻办公+注重穿搭：选精致的腋下包，上班也能美美的！</span></p><p><span>宝子们你们现在的通勤包是哪一种呀？快在评论区告诉我吧👇 我也要去蹲蹲好物推荐！别忘了点赞收藏哦，不然划走就找不到啦❤️</span></p><p><span>#</span><span>职场通勤 #通勤包 #职场穿搭 #包包推荐 #双肩包 #托特包 #腋下包 #打工人 #入职好物 #职场新人 #好物分享 #我的平价好物 #通勤穿搭</span></p><h3 id='🖼️-图片展示-12'><span>🖼️ 图片展示</span></h3><p><img src="Outputs/职场新人通勤包选购攻略 对比托特包、双肩包、腋下包的容量和材质 标注品牌和价格区间/image_1.jpg" alt="image_1.jpg" style="zoom:22%;" /><span> </span><img src="Outputs/职场新人通勤包选购攻略 对比托特包、双肩包、腋下包的容量和材质 标注品牌和价格区间/image_2.jpg" alt="image_2.jpg" style="zoom:22%;" /><span> </span><img src="Outputs/职场新人通勤包选购攻略 对比托特包、双肩包、腋下包的容量和材质 标注品牌和价格区间/image_3.jpg" alt="image_3.jpg" style="zoom:22%;" /><span> </span></p><p>&nbsp;</p><br><hr /><br><h2 id='迪士尼玲娜贝儿互动全攻略包含预约技巧拍照动作模板结尾添加魔法用语彩蛋'><span>迪士尼玲娜贝儿互动全攻略，包含预约技巧、拍照动作模板，结尾添加魔法用语彩蛋。</span></h2><h3 id='📝-文案内容-13'><span>📝 文案内容</span></h3><p><span>#</span><span> 需求：迪士尼玲娜贝儿互动全攻略，包含预约技巧、拍照动作模板，结尾添加“魔法用语”彩蛋。</span></p><p><span>终于见到我的小狐狸女儿了！这次去迪士尼真的做足了功课，不仅成功约到了见面会，还拿到了超多独家互动！整理出来的保姆级攻略，一定要码住，不然刷着刷着就找不到啦！</span></p><p><span>关于预约，真的不能佛系！</span></p><p><span>一定要提前下载好上海迪士尼度假区APP，绑定好门票。</span>
+<span>每天早上7点准时蹲守，不要等到7点01分，好位置真的秒没！</span>
+<span>如果显示约满了，不要马上退出，多刷几次，有时候会有候补名额掉落。</span>
+<span>记得选早上的场次，贝儿刚上班状态最好，互动也最积极！</span></p><p><span>怎么让贝儿一眼看到你？</span></p><p><span>穿搭尽量选粉色系或者带有狐狸元素的，贝儿对同色系的小朋友特别偏爱！</span>
+<span>一定要带礼物！手工做的花朵、画着她的画，或者她最爱的蝴蝶结。当她看到你的礼物时，那个惊喜的眼神真的能融化心！</span>
+<span>互动的时候可以稍微大声一点喊她的名字，或者挥挥手，她真的很喜欢被关注的感觉。</span></p><p><span>拍照不想尴尬？试试这几个万能动作：</span></p><p><span>摸鼻杀：贝儿超级喜欢摸鼻子，你也跟着摸，同款可爱get！</span>
+<span>牵手手：伸出手，她会主动过来牵你，那一刻真的心跳加速！</span>
+<span>比心歪头：贝儿歪头杀太绝了，你也跟着歪头比心，默契度满分。</span>
+<span>假装惊讶：当她送你飞吻或者做动作时，捂住嘴巴假装惊讶，抓拍最自然。</span></p><p><span>最后是大家最想要的魔法用语彩蛋！</span></p><p><span>见到她的时候，试着大声说：“贝儿，看这里！”或者“贝儿，飞一个！”</span>
+<span>如果她心情好，你还可以说：“贝儿，你的耳朵好可爱呀！”她可能会害羞地捂住耳朵哦！</span></p><p><span>去迪士尼见贝儿真的是治愈心灵的旅程。希望大家都能和女儿拥有完美的约会！记得点赞收藏，下次去的时候直接照着做！</span></p><p><span>#</span><span>迪士尼 #玲娜贝儿 #迪士尼攻略 #上海迪士尼 #玲娜贝儿见面会 #迪士尼拍照 #迪士尼乐园</span></p><h3 id='🖼️-图片展示-13'><span>🖼️ 图片展示</span></h3><p><img src="Outputs/迪士尼玲娜贝儿互动全攻略，包含预约技巧、拍照动作模板，结尾添加魔法用语彩蛋。/image_1.jpg" alt="image_1.jpg" style="zoom:33%;" /><span> </span><img src="Outputs/迪士尼玲娜贝儿互动全攻略，包含预约技巧、拍照动作模板，结尾添加魔法用语彩蛋。/image_2.jpg" alt="image_2.jpg" style="zoom:33%;" /><span> </span><img src="Outputs/迪士尼玲娜贝儿互动全攻略，包含预约技巧、拍照动作模板，结尾添加魔法用语彩蛋。/image_3.jpg" alt="image_3.jpg" style="zoom:33%;" /><span> </span></p><p>&nbsp;</p><br><hr /><br><h2 id='需要一篇春日野餐攻略笔记附穿搭和滤镜建议标题带氛围感关键词3张图文字模板'><span>需要一篇春日野餐攻略笔记，附穿搭和滤镜建议，标题带氛围感关键词，3张图+文字模板。</span></h2><h3 id='📝-文案内容-14'><span>📝 文案内容</span></h3><p><span>#</span><span> 需求：需要一篇春日野餐攻略笔记，附穿搭和滤镜建议，标题带“氛围感”关键词，3张图+文字模板。</span></p><p><span>抓住春天的尾巴，去赴一场浪漫的约会吧。阳光、草地、微风，这才是春天该有的样子呀。整理了一份超全的春日野餐攻略，包括穿搭和滤镜参数，姐妹们赶紧码住！</span></p><p><span>关于野餐布置的小心思</span></p><ul><li><p><span>选址：一定要找有树荫的草坪，阳光透过树叶洒下来的斑驳光影，是营造氛围感的关键。</span></p></li><li><p><span>餐具：带点藤编的篮子、透明的玻璃杯，再买一束自己喜欢的鲜花，随便一摆就是大片。</span></p></li><li><p><span>食物：准备一些颜色鲜艳的水果、三明治和起泡酒，不仅好吃，更是最好的拍照道具。</span></p></li></ul><p><span>超好拍的春日穿搭建议</span></p><ul><li><p><span>风格：法式复古风或者韩系温柔风最出片。</span></p></li><li><p><span>单品：白色连衣裙是永远的神，或者浅色针织衫搭配牛仔裤，清新又自然。</span></p></li><li><p><span>配饰：草帽、珍珠项链、墨镜，这些小细节能瞬间提升精致度。</span></p></li></ul><p><span>保姆级拍照滤镜教程</span></p><ul><li><p><span>时间：下午3点到5点，光线最柔和，自带柔光滤镜。</span></p></li><li><p><span>角度：俯拍全景展示氛围，或者侧身抓拍，不看镜头最自然。</span></p></li><li><p><span>滤镜参数（醒图）：</span></p><ul><li><p><span>滤镜：奶油+50</span></p></li><li><p><span>调节：亮度+10，对比度-5，色温+5，颗粒+15，高光-10</span></p></li></ul></li></ul><p><span>在这个美好的季节，约上三五好友，或者一个人去享受独处的时光，去感受春天的气息吧。</span></p><p><span>这个周末你打算去哪里踏青呢？评论区告诉我呀～</span></p><p><span>#</span><span>春日野餐 #氛围感 #春游 #拍照姿势 #OOTD #春日穿搭 #野餐攻略 #滤镜调色</span></p><h3 id='🖼️-图片展示-14'><span>🖼️ 图片展示</span></h3><p><img src="Outputs/需要一篇春日野餐攻略笔记，附穿搭和滤镜建议，标题带氛围感关键词，3张图+文字模板。/image_1.jpg" alt="image_1.jpg" style="zoom:33%;" /><span> </span><img src="Outputs/需要一篇春日野餐攻略笔记，附穿搭和滤镜建议，标题带氛围感关键词，3张图+文字模板。/image_2.jpg" alt="image_2.jpg" style="zoom:33%;" /><span> </span><img src="Outputs/需要一篇春日野餐攻略笔记，附穿搭和滤镜建议，标题带氛围感关键词，3张图+文字模板。/image_3.jpg" alt="image_3.jpg" style="zoom:33%;" /><span> </span></p><p>&nbsp;</p><br><hr /><br><h2 id='面试妆容教程-突出亲和力和专业感-列出化妆品清单并标注防水防脱妆技巧'><span>面试妆容教程 突出亲和力和专业感 列出化妆品清单并标注防水防脱妆技巧</span></h2><h3 id='📝-文案内容-15'><span>📝 文案内容</span></h3><p><span>#</span><span> 需求：面试妆容教程 突出“亲和力”和“专业感” 列出化妆品清单并标注防水防脱妆技巧</span></p><p><span>宝子们！面试季真的来啦！是不是还在纠结化什么妆去面试？太浓显得不稳重，太淡又没气色😰 今天手把手教大家打造那种一看就很靠谱但又很好相处的面试妆！HR看了都想加你微信的那种！😍 这种妆容的精髓就是：伪素颜 + 提气色！我们要的是那种妈生好皮的感觉，让面试官觉得你精力充沛，做事干练✨</span></p><p><span>📝 面试必备化妆品清单请查收：</span></p><p><span>1️⃣ 底妆类：选那种清透持久的粉底液，色号一定要选跟脖子颜色最接近的，千万别假白哦！假面感太重会显得不真诚🙅‍♀️ 遮瑕力中等偏上就可以，重点遮一下黑眼圈和痘印，整个人看起来精神百倍！</span></p><p><span>2️⃣ 眉笔：一定要选灰棕色或者深咖色！千万别用死黑色！画出根根分明的毛流感，野生眉最显亲和力，看起来温柔又好相处🌿</span></p><p><span>3️⃣ 眼影：大地色盘yyds！只晕染眼尾和双眼皮褶皱内，消肿又深邃，绝对不要带闪片！低调才是王道👁️</span></p><p><span>4️⃣ 眼线：棕色眼线笔填充睫毛根部，眼尾自然拉出一点点即可，不要上挑太夸张，内双的姐妹可以省略这一步👀</span></p><p><span>5️⃣ 口红：豆沙色或者干枯玫瑰色是首选！薄涂就是温柔本人，厚涂气场也在线，显得唇色饱满但不张扬💄</span></p><p><span>6️⃣ 散粉：透明散粉定妆，打造磨皮质感，拒绝油光满面，清爽干练才是职场人的标配💨</span></p><p><span>🌧️ 防水防脱秘籍大公开，关键时刻绝对不能掉链子：</span></p><p><span>✅ 妆前乳不能少！尤其是混油皮的姐妹，控油做好了，底妆才扒得牢，就算紧张出汗也不怕斑驳🧴</span></p><p><span>✅ 三明治定妆法！粉底前喷一层定妆喷雾，上完粉底再喷一层，最后压上散粉，这招真的绝绝子，锁妆力满分💯</span></p><p><span>✅ 烘焙定妆法！用粉扑厚厚铺一层散粉在眼下和T区，静置几分钟后扫掉，带妆一整天都不怕脱，卡粉拜拜👋</span></p><p><span>✅ 眼线和口红一定要选防水的！面试万一紧张出汗了，也不怕变成小花猫，时刻保持优雅🐱</span></p><p><span>✅ 出门前最后再喷一层定妆喷雾，这可是封印妆容的最后一步，带妆十小时都没压力⏰</span></p><p><span>赶紧收藏起来照着画，调整好心态，自信的你最美丽！祝大家都能顺利拿到心仪的Offer，我们岸上见呀！冲鸭！🚀</span></p><p><span>#</span><span>面试妆容 #职场新人 #妆容分享 #面试技巧 #伪素颜妆容 #防脱妆 #亲和力妆容 #专业感 #今日妆容 #职场化妆</span></p><h3 id='🖼️-图片展示-15'><span>🖼️ 图片展示</span></h3><p><img src="Outputs/面试妆容教程 突出亲和力和专业感 列出化妆品清单并标注防水防脱妆技巧/image_1.jpg" alt="image_1.jpg" style="zoom:22%;" /><span> </span><img src="Outputs/面试妆容教程 突出亲和力和专业感 列出化妆品清单并标注防水防脱妆技巧/image_2.jpg" alt="image_2.jpg" style="zoom:22%;" /><span> </span><img src="Outputs/面试妆容教程 突出亲和力和专业感 列出化妆品清单并标注防水防脱妆技巧/image_3.jpg" alt="image_3.jpg" style="zoom:22%;" /><span> </span></p><p>&nbsp;</p><br><hr /><br><p><strong><span>幻境突围团队 · 2026年1月18日</span></strong></p></div></div>
+</body>
+</html>

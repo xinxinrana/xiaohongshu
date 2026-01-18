@@ -85,6 +85,20 @@ export const knowledgeAPI = {
 }
 
 /**
+ * 清理文案中的 Markdown 杂质
+ * @param {string} content 
+ * @returns {string}
+ */
+const cleanupContent = (content) => {
+  if (!content) return ''
+  return content
+    .replace(/\*\*/g, '') // 移除加粗
+    .replace(/^\s*[\*\-\+]\s+/gm, '• ') // 将列表符号替换为圆点或移除
+    .replace(/\n\s*[\*\-\+]\s+/g, '\n• ') // 处理换行后的列表
+    .replace(/[\*\_~`]/g, '') // 移除所有星号、下划线、波浪线、反引号
+}
+
+/**
  * 获取 AI 模型的响应（支持流式传输）
  * @param {string} prompt - 提示词
  * @param {Object} options - 配置项
@@ -107,12 +121,14 @@ const getAIResponse = async (prompt, options = {}) => {
 要求：
 1. **只返回文案正文内容**，不要包含标题、不要包含任何解释性文字、不要包含建议的图片描述、不要包含元数据。
 2. 文案应包含吸引人的开头、有价值的正文内容、自然的互动引导以及相关的标签。
-3. 严格遵守 Markdown 格式，可以使用列表、引用等语法增加可读性。**严禁使用加粗语法（如 **文本**）**，因为小红书平台不支持。
-4. 不要出现类似 "这是为您生成的文案" 或 "图片建议：" 这样的废话。`
+3. **严禁使用任何 Markdown 特殊符号**，特别是星号 (*)、下划线 (_)、加粗 (**)、斜体 (*)。
+4. **必须在每一段、每一个重点处插入大量且贴切的 Emoji 表情**，增加小红书的“墨迹”感和亲和力。
+5. 对于列表项，请使用 Emoji (如 📍, ✅, ✨, 💎) 或数字，**严禁使用星号或短横线作为列表前缀**。
+6. 不要出现类似 "这是为您生成的文案" 或 "图片建议：" 这样的废话。`
       },
       { role: 'user', content: prompt }
     ],
-    temperature: 0.6,
+    temperature: 0.8, // 略微提高随机性以获得更多 Emoji
     top_p: 0.7,
     stream: !!options.onStream
   }
@@ -156,7 +172,9 @@ const getAIResponse = async (prompt, options = {}) => {
               const content = data.choices[0]?.delta?.content || ''
               if (content) {
                 fullContent += content
-                options.onStream(fullContent, content)
+                // 实时清理流式输出中的杂质
+                const cleanedContent = cleanupContent(fullContent)
+                options.onStream(cleanedContent, content)
               }
             } catch (e) {
               console.error('解析流数据失败:', e)
@@ -164,11 +182,11 @@ const getAIResponse = async (prompt, options = {}) => {
           }
         }
       }
-      return fullContent
+      return cleanupContent(fullContent)
     } else {
       // 非流式模式保留 axios 调用（用于简单的分析接口）
       const response = await aiClient.post('chat/completions', payload)
-      return response.data.choices[0].message.content
+      return cleanupContent(response.data.choices[0].message.content)
     }
   } catch (error) {
     console.error('AI API 调用失败:', error)
@@ -258,10 +276,12 @@ export const generationAPI = {
     
     要求：
     1. 风格要极具吸引力，能够引起目标受众取得共鸣。
-    2. 使用 Markdown 格式美化排版（如：使用 Emoji、清晰的分段、列表等）。**严禁使用加粗语法**。
-    3. **严禁**输出任何关于图片的建议或描述词，这些工作将由其他系统完成。
-    4. **严禁**输出任何开场白或结束语（如 "好的，为您生成如下："）。
-    5. 直接输出文案内容本身。`
+    2. **必须在文案中插入大量且贴切的 Emoji 表情**，增加小红书的活跃感。
+    3. **严禁使用任何 Markdown 特殊符号**，特别是星号 (*)、下划线 (_)、加粗 (**)。
+    4. 对于列表或分点内容，请使用 Emoji 或数字，**绝对禁止使用星号或横线作为列表前缀**。
+    5. **严禁**输出任何关于图片的建议或描述词，这些工作将由其他系统完成。
+    6. **严禁**输出任何开场白或结束语（如 "好的，为您生成如下："）。
+    7. 直接输出文案内容本身。`
     
     try {
       const content = await getAIResponse(prompt, options)
@@ -291,9 +311,11 @@ export const generationAPI = {
     
     要求：
     1. 提取框架的核心价值点。
-    2. 使用 Markdown 格式美化排版（如：Emoji、分段、列表），但**严禁使用加粗语法**。
-    3. **严禁**输出任何图片建议、前导说明或元数据。
-    4. 直接输出文案正文。`
+    2. **必须插入大量贴切的 Emoji**，增强视觉吸引力和亲和力。
+    3. **严禁使用任何 Markdown 符号**，特别是星号 (*)、加粗 (**)、列表短横线 (-)。
+    4. 列表项请使用 1., 2., 3. 或 Emoji。
+    5. **严禁**输出任何图片建议、前导说明或元数据。
+    6. 直接输出文案正文。`
     
     try {
       const content = await getAIResponse(prompt)
@@ -472,10 +494,12 @@ ${uploadedImageUrl ? `用户还上传了参考图片：${uploadedImageUrl}` : ''
 要求：
 1. 创作一篇符合小红书平台调性的爆款文案
 2. 文案要有吸引人的标题和正文内容
-3. 使用 Emoji、分段、列表等增强可读性，但**严禁使用加粗语法**
-4. 直接输出文案内容，不要包含任何元数据或说明性文字
-5. 字数控制在300-500字之间
-6. 添加3-5个相关话题标签
+3. **必须在文案中插入大量且贴切的 Emoji 表情**，增加“墨迹”感
+4. **严禁使用任何 Markdown 特殊符号**，特别是星号 (*)、下划线 (_)、加粗 (**)
+5. 列表请使用 Emoji 或数字，**严禁使用星号或短横线前缀**
+6. 直接输出文案内容，不要包含任何元数据或说明性文字
+7. 字数控制在300-500字之间
+8. 添加3-5个相关话题标签
 
 请直接返回文案内容：`
         
@@ -557,9 +581,11 @@ ${userFeedback}
 要求：
 1. 根据用户反馈调整文案内容和风格
 2. 保持小红书平台调性和爆款特征
-3. 使用 Emoji、分段、列表等增强可读性，但**严禁使用加粗语法**
-4. 直接输出修改后的文案，不要包含说明性文字
-5. 字数控制在300-500字之间
+3. **必须插入大量贴切的 Emoji**，增加视觉活跃度
+4. **严禁使用任何 Markdown 符号**，特别是星号 (*)、加粗 (**)
+5. 列表请使用 Emoji 或数字
+6. 直接输出修改后的文案，不要包含说明性文字
+7. 字数控制在300-500字之间
 
 请直接返回修改后的文案：`
         

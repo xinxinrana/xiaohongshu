@@ -1,5 +1,7 @@
 # Nixtio AI 爆款创作工作台
 
+![image-20260118163125001](README.assets/image-20260118163125001.png)
+
 Nixtio AI 是一款专为小红书（Xiaohongshu）创作者打造的智能图文生成工具。通过集成多种 AI 能力与爆款文案框架，帮助创作者一键生成高质量、高转化率的种草笔记。
 
 ## 核心功能
@@ -31,10 +33,10 @@ Nixtio AI 是一款专为小红书（Xiaohongshu）创作者打造的智能图�
 
 ```powershell
 # 一键安装前后端所有依赖
-npm run install:all
+npm run install
 
 # 同时启动前端和后端开发服务器
-npm run dev:all
+npm run dev
 ```
 
 ### 2. 手动分步启动
@@ -53,7 +55,7 @@ npm install
 npm run dev
 ```
 
-启动完成后，前端默认运行在 [http://localhost:5173](http://localhost:5173)。
+启动完成后，前端默认运行在 [http://localhost:8001/](http://localhost:8001)。
 
 ## 如何使用
 
@@ -73,3 +75,6 @@ npm run dev
 - **前端**：Vue 3, Vite, Naive UI, Axios
 - **后端**：Node.js, Express
 - **图标**：@vicons/antd (Ant Design Icons)
+
+---
+*幻境突围团队 · 2026年1月18日*

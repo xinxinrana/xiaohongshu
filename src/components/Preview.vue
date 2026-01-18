@@ -398,9 +398,16 @@ const formatContent = (body) => {
   cursor: pointer;
 }
 
-/* 隐藏滚动条 */
-.preview-container.mobile::-webkit-scrollbar {
-  width: 0px;
+/* 隐藏滚动条但保留滚动功能 */
+.preview-container.mobile,
+.post-content-area {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
+}
+
+.preview-container.mobile::-webkit-scrollbar,
+.post-content-area::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Edge */
 }
 </style>
 
