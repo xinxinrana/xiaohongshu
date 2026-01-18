@@ -62,7 +62,7 @@ def generate_summary_md(target_dir, output_file):
                 # 使用相对路径，方便在 Markdown 中预览
                 relative_img_path = os.path.join("Outputs", folder, img).replace("\\", "/")
                 # 使用 HTML 标签以支持 zoom 缩放属性
-                markdown_content += f'<img src="{relative_img_path}" alt="{img}" style="zoom:33%;" /> '
+                markdown_content += f'<img src="{relative_img_path}" alt="{img}" style="zoom:22%;" /> '
             markdown_content += "\n\n"
         else:
             markdown_content += "### 🖼️ 图片展示\n\n*(暂无图片)*\n\n"
