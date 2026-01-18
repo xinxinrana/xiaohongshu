@@ -371,7 +371,7 @@ export const imageGenerationAPI = {
    * 生成图片
    * @param {Object} params - 生成参数
    * @param {string} params.prompt - 提示词
-   * @param {string} [params.size='960x1280'] - 图片尺寸 (小红书推荐 3:4 比例，且满足像素下限)
+   * @param {string} [params.size='1440x2560'] - 图片尺寸 (必须满足像素下限 3686400)
    * @returns {Promise<Object>}
    */
   async generate(params) {
@@ -379,7 +379,7 @@ export const imageGenerationAPI = {
     const payload = {
       model: model,
       prompt: params.prompt,
-      size: params.size || '960x1280',
+      size: params.size || '1440x2560',
       response_format: 'url',
       sequential_image_generation: 'disabled',
       stream: false,

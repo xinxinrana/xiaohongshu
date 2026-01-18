@@ -507,7 +507,7 @@ const generateImages = async (content) => {
     if (!prompts || prompts.length === 0) return
 
     const imagePromises = prompts.map(prompt => 
-      imageGenerationAPI.generate({ prompt, size: '960x1280' })
+      imageGenerationAPI.generate({ prompt, size: '1440x2560' })
     )
     
     const results = await Promise.all(imagePromises)
