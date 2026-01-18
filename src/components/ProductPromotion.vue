@@ -19,9 +19,8 @@
           class="product-card"
           hoverable
           content-style="padding: 12px;"
-          @click="selectProduct(product)"
         >
-          <div class="product-content">
+          <div class="product-content" @click="selectProduct(product)">
             <div class="product-info">
               <n-text strong class="product-name">{{ product.name }}</n-text>
               <n-text depth="3" class="product-desc">{{ product.description }}</n-text>
@@ -38,7 +37,7 @@
             </div>
           </div>
           <template #action>
-            <n-button type="primary" secondary block size="small" class="select-btn">
+            <n-button type="primary" secondary block size="small" class="select-btn" @click="selectProduct(product)">
               选择此产品
             </n-button>
           </template>

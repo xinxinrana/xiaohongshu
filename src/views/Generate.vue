@@ -110,6 +110,8 @@
         ref="keywordInputRef" 
         @analyzed="handleQuickGenerate" 
         :analyzing="generating"
+        @imageUploaded="handleImageUpload"
+        @imageRemoved="handleImageRemove"
         class="floating-input-bar"
       />
     </div>
@@ -171,6 +173,15 @@
         </template>
       </n-drawer-content>
     </n-drawer>
+
+    <!-- 增强版工作流：满意度反馈模态框 -->
+    <SatisfactionModal
+      v-model:show="showSatisfactionModal"
+      :iteration-count="iterationCount"
+      @satisfied="handleSatisfied"
+      @edit="handleEdit"
+      @close="showSatisfactionModal = false"
+    />
   </div>
 </template>
 
@@ -186,13 +197,14 @@ import {
   StarOutlined,
   TeamOutlined
 } from '@vicons/antd'
-import { generationAPI, imageGenerationAPI } from '../services/api'
-import { historyService } from '../services/history'
+import { generationAPI, imageGenerationAPI, enhancedAPI } from '../services/api'
+import { historyService, enhancedHistoryService } from '../services/history'
 import KeywordInput from '../components/KeywordInput.vue'
 import ProductPromotion from '../components/ProductPromotion.vue'
 import ContentEditor from '../components/ContentEditor.vue'
 import QualityAnalysis from '../components/QualityAnalysis.vue'
 import Preview from '../components/Preview.vue'
+import SatisfactionModal from '../components/SatisfactionModal.vue'
 
 const message = useMessage()
 
@@ -210,6 +222,14 @@ const currentKeywords = ref('')
 const currentSpecialRequirements = ref('')
 const previewDevice = ref('mobile')
 const showHistory = ref(false)
+
+// 增强版工作流状态
+const enhancedMode = ref(false)
+const showSatisfactionModal = ref(false)
+const currentSessionId = ref(null)
+const iterationCount = ref(0)
+const currentPrompts = ref([])
+const uploadedImageUrl = ref(null)
 
 // 计算当前侧边栏宽度
 const currentSidebarWidth = computed(() => {
@@ -252,16 +272,57 @@ const addLog = (title, content, type = 'info') => {
 }
 
 /**
+ * 处理图片上传
+ * @param {string} imageUrl - 图片的Base64或URL
+ */
+const handleImageUpload = (imageUrl) => {
+  uploadedImageUrl.value = imageUrl
+  console.log('[图片上传成功]', imageUrl.substring(0, 50) + '...')
+  message.success('图片已上传，将用于AI分析')
+}
+
+/**
+ * 处理图片移除
+ */
+const handleImageRemove = () => {
+  uploadedImageUrl.value = null
+  console.log('[图片已移除]')
+}
+
+/**
  * 一键快捷生成逻辑
  */
 const handleQuickGenerate = async (data) => {
   currentKeywords.value = data.keywords
   currentSpecialRequirements.value = data.specialRequirements || ''
+  enhancedMode.value = data.enhancedMode || false
+  
+  // 从 KeywordInput 组件获取已上传的图片URL
+  if (keywordInputRef.value) {
+    const imgUrl = keywordInputRef.value.getUploadedImageUrl()
+    if (imgUrl) {
+      uploadedImageUrl.value = imgUrl
+      console.log('[检测到上传图片]', imgUrl.substring(0, 50) + '...')
+    }
+  }
+  
   if (!currentKeywords.value) {
     message.warning('请先输入关键词')
     return
   }
   
+  // 根据模式选择不同的生成流程
+  if (enhancedMode.value) {
+    await handleEnhancedGenerate()
+  } else {
+    await handleNormalGenerate()
+  }
+}
+
+/**
+ * 普通模式生成逻辑（原有功能）
+ */
+const handleNormalGenerate = async () => {
   generating.value = true
   generationProgress.value = 0
   processingLogs.value = []
@@ -320,6 +381,117 @@ const handleQuickGenerate = async (data) => {
     setTimeout(() => {
       generating.value = false
     }, 1500)
+  }
+}
+
+/**
+ * 增强版模式生成逻辑
+ */
+const handleEnhancedGenerate = async () => {
+  generating.value = true
+  generationProgress.value = 0
+  processingLogs.value = []
+  generatedImages.value = []
+  generatedContent.value = null
+  editedContent.value = null
+  currentPrompts.value = []
+  
+  // 初始化会话 ID
+  if (!currentSessionId.value) {
+    currentSessionId.value = Date.now().toString()
+    iterationCount.value = 0
+  }
+  
+  try {
+    // 阶段1：生成文案（第1次AI调用）
+    addLog('阶段1/4', '正在生成文案内容...', 'info')
+    generationProgress.value = 10
+    
+    const streamingContent = {
+      content: ''
+    }
+    
+    const contentResponse = await enhancedAPI.generateContent(
+      currentKeywords.value,
+      currentSpecialRequirements.value || currentKeywords.value,
+      uploadedImageUrl.value,
+      (fullContent, delta) => {
+        if (streamingContent.content === '') {
+          addLog('文案生成', '正在流式生成爆款文案...', 'success')
+          generationProgress.value = 25
+        }
+        streamingContent.content = fullContent
+        generatedContent.value = { content: fullContent, isRawText: true }
+        editedContent.value = { content: fullContent, isRawText: true }
+      }
+    )
+    
+    // 确保文案已生成
+    if (!generatedContent.value || !generatedContent.value.content) {
+      generatedContent.value = { content: contentResponse.data.content, isRawText: true }
+      editedContent.value = { content: contentResponse.data.content, isRawText: true }
+    }
+    
+    generationProgress.value = 35
+    addLog('文案完成', `文案已生成，共${generatedContent.value.content.length}字`, 'success')
+    
+    // 阶段2：生成提示词（第2次AI调用）
+    addLog('阶段2/4', '正在生成配图提示词...', 'info')
+    generationProgress.value = 40
+    
+    const promptsResponse = await enhancedAPI.generatePrompts(
+      generatedContent.value.content,
+      uploadedImageUrl.value
+    )
+    
+    if (promptsResponse.data.success) {
+      currentPrompts.value = promptsResponse.data.prompts
+      addLog('提示词生成', `已生成${currentPrompts.value.length}个配图提示词`, 'success')
+      generationProgress.value = 50
+    } else {
+      throw new Error('提示词生成失败')
+    }
+    
+    // 阶段3：生成图像
+    addLog('阶段3/4', '正在生成配图（预计60秒）...', 'info')
+    imageGenerating.value = true
+    generationProgress.value = 55
+    
+    const imagesResponse = await enhancedAPI.generateImages(
+      currentPrompts.value,
+      uploadedImageUrl.value
+    )
+    
+    if (imagesResponse.data.success) {
+      generatedImages.value = imagesResponse.data.images.map(url => ({ url }))
+      addLog('图像生成', `成功生成${generatedImages.value.length}张配图`, 'success')
+      generationProgress.value = 90
+    } else {
+      addLog('图像生成', '图片生成失败，但文案已成功', 'warning')
+      generationProgress.value = 90
+    }
+    
+    imageGenerating.value = false
+    generationProgress.value = 100
+    addLog('阶段4/4', '初始生成完成！', 'success')
+    
+    // 保存到增强版历史
+    saveToEnhancedHistory()
+    
+    message.success('增强版内容生成完成！')
+    
+    // 延迟显示满意度反馈模态框
+    setTimeout(() => {
+      generating.value = false
+      showSatisfactionModal.value = true
+    }, 1000)
+    
+  } catch (error) {
+    console.error('增强版生成失败:', error)
+    addLog('生成失败', error.message, 'error')
+    message.error(`生成失败：${error.message}`)
+    generating.value = false
+    imageGenerating.value = false
   }
 }
 
@@ -423,6 +595,170 @@ const clearHistory = () => {
 
 const formatDate = (ts) => {
   return new Date(ts).toLocaleString()
+}
+
+/**
+ * 处理用户满意（生成最终质量分析 - 流式输出）
+ */
+const handleSatisfied = async () => {
+  // 立即关闭弹窗，让用户看到流式生成过程
+  showSatisfactionModal.value = false
+  
+  // 初始化质量分析状态（先显示加载中）
+  qualityAnalysis.value = {
+    isRawText: true,
+    analysis: '',
+    isStreaming: true
+  }
+  
+  try {
+    addLog('质量分析', '正在流式生成质量分析报告...', 'info')
+    
+    const analysisResponse = await enhancedAPI.generateFinalAnalysis(
+      generatedContent.value.content,
+      (fullContent, delta) => {
+        // 流式更新质量分析内容
+        qualityAnalysis.value = {
+          isRawText: true,
+          analysis: fullContent,
+          isStreaming: true
+        }
+      }
+    )
+    
+    if (analysisResponse.data.success) {
+      qualityAnalysis.value = {
+        isRawText: true,
+        analysis: analysisResponse.data.analysis,
+        isStreaming: false
+      }
+      
+      // 更新历史记录
+      saveToEnhancedHistory()
+      
+      message.success('质量分析报告已生成！')
+      addLog('分析完成', '质量分析报告已生成', 'success')
+    }
+  } catch (error) {
+    console.error('质量分析失败:', error)
+    message.error('质量分析生成失败')
+    qualityAnalysis.value = null
+  }
+}
+
+/**
+ * 处理用户修改请求
+ */
+const handleEdit = async (editData) => {
+  try {
+    generating.value = true
+    processingLogs.value = []
+    generationProgress.value = 0
+    iterationCount.value++
+    
+    addLog(`第${iterationCount.value}次修改`, '正在根据您的反馈优化内容...', 'info')
+    
+    // 第3次AI调用：编辑文案
+    addLog('步骤1/3', '正在修改文案...', 'info')
+    generationProgress.value = 20
+    
+    const editedContentResponse = await enhancedAPI.editContent(
+      generatedContent.value.content,
+      editData.contentFeedback,
+      (fullContent, delta) => {
+        // 实时更新文案内容（流式输出）
+        generatedContent.value = { content: fullContent, isRawText: true }
+        editedContent.value = { content: fullContent, isRawText: true }
+        if (generationProgress.value < 40) {
+          addLog('文案修改', '正在根据您的反馈重新生成文案...', 'success')
+          generationProgress.value = 40
+        }
+      }
+    )
+    
+    generatedContent.value = { content: editedContentResponse.data.content, isRawText: true }
+    editedContent.value = { content: editedContentResponse.data.content, isRawText: true }
+    generationProgress.value = 50
+    
+    // 第4次AI调用：优化提示词
+    addLog('步骤2/3', '正在优化图片提示词...', 'info')
+    const optimizedPromptsResponse = await enhancedAPI.optimizePrompts(
+      currentPrompts.value,
+      editData.imageFeedback,
+      editData.referenceImageUrl
+    )
+    
+    if (optimizedPromptsResponse.data.success) {
+      currentPrompts.value = optimizedPromptsResponse.data.prompts
+      addLog('提示词优化', `已优化${currentPrompts.value.length}个提示词`, 'success')
+      generationProgress.value = 70
+    }
+    
+    // 图像编辑
+    addLog('步骤3/3', '正在重新生成图片...', 'info')
+    imageGenerating.value = true
+    
+    const editedImagesResponse = await enhancedAPI.editImages(
+      currentPrompts.value,
+      editData.referenceImageUrl || uploadedImageUrl.value
+    )
+    
+    if (editedImagesResponse.data.success) {
+      generatedImages.value = editedImagesResponse.data.images.map(url => ({ url }))
+      addLog('图片重新生成', `成功生成${generatedImages.value.length}张新图片`, 'success')
+      generationProgress.value = 100
+    }
+    
+    imageGenerating.value = false
+    
+    // 保存迭代记录
+    saveIterationToHistory({
+      content: generatedContent.value.content,
+      prompts: currentPrompts.value,
+      images: generatedImages.value,
+      contentFeedback: editData.contentFeedback,
+      imageFeedback: editData.imageFeedback
+    })
+    
+    message.success(`第${iterationCount.value}次优化完成！`)
+    addLog('优化完成', `第${iterationCount.value}次优化完成`, 'success')
+    
+    // 延迟再次显示满意度模态框
+    setTimeout(() => {
+      generating.value = false
+      showSatisfactionModal.value = true
+    }, 1000)
+    
+  } catch (error) {
+    console.error('修改失败:', error)
+    addLog('修改失败', error.message, 'error')
+    message.error('修改失败，请稍后重试')
+    generating.value = false
+    imageGenerating.value = false
+  }
+}
+
+/**
+ * 保存到增强版历史
+ */
+const saveToEnhancedHistory = () => {
+  enhancedHistoryService.save({
+    keywords: currentKeywords.value,
+    userMessage: currentSpecialRequirements.value,
+    content: generatedContent.value,
+    prompts: currentPrompts.value,
+    images: generatedImages.value,
+    qualityAnalysis: qualityAnalysis.value,
+    iterationCount: iterationCount.value,
+    uploadedImageUrl: uploadedImageUrl.value
+  }, currentSessionId.value)
+}
+
+/**
+ * 保存迭代记录
+ */
+const saveIterationToHistory = (iterationData) => {
+  enhancedHistoryService.updateIteration(currentSessionId.value, iterationData)
 }
 </script>
 

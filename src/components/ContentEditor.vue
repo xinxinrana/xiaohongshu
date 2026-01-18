@@ -130,11 +130,7 @@
       <n-space>
         <n-button @click="handleRegenerate" size="large">
           <template #icon>
-            <n-icon>
-              <svg viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
-                <path fill="currentColor" d="M792 768c0 4.4-3.6 8-8 8h-48c-4.4 0-8-3.6-8-8V640H512v128c0 4.4-3.6 8-8 8h-32v-80h224zM448 480h-48V320c0-17.7 14.3-32 32-32h144c17.7 0 32 14.3 32 32v160h-48v-80c0-4.4-3.6-8-8-8h-96c-4.4 0-8 3.6-8 8v80z"/>
-              </svg>
-            </n-icon>
+            <n-icon><sync-outlined /></n-icon>
           </template>
           重新生成
         </n-button>
@@ -197,7 +193,7 @@
 <script setup>
 import { ref, watch, nextTick, computed } from 'vue'
 import { useMessage, NModal, NForm, NFormItem, NDatePicker, NSelect, NRadioGroup, NRadio, NAlert } from 'naive-ui'
-import { DownloadOutlined } from '@vicons/antd'
+import { DownloadOutlined, SyncOutlined } from '@vicons/antd'
 import MarkdownIt from 'markdown-it'
 
 const message = useMessage()

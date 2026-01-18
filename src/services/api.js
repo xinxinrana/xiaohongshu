@@ -7,7 +7,7 @@ import axios from 'axios'
 
 const api = axios.create({
   baseURL: '/api',
-  timeout: 10000
+  timeout: 180000 // 3分钟超时（图像生成需要轮询60秒）
 })
 
 /**
@@ -444,6 +444,240 @@ export const imageGenerationAPI = {
     } catch (error) {
       console.error('生成图片提示词失败，详细错误:', error)
       return []
+    }
+  }
+}
+
+/**
+ * 增强版工作流 API
+ */
+export const enhancedAPI = {
+  /**
+   * 阶段1：生成文案（第1次AI调用）
+   * @param {string} keywords - 关键词
+   * @param {string} userMessage - 用户对话内容
+   * @param {string} uploadedImageUrl - 用户上传的图片URL
+   * @param {Function} onStream - 流式回调（可选）
+   */
+  async generateContent(keywords, userMessage, uploadedImageUrl = null, onStream = null) {
+    try {
+      if (onStream) {
+        // 流式生成（直接调用GLM API）
+        const prompt = `你是一个专业的小红书内容创作专家。请根据以下信息创作一篇高质量的小红书图文内容。
+
+用户关键词：${keywords}
+用户对话内容：${userMessage}
+${uploadedImageUrl ? `用户还上传了参考图片：${uploadedImageUrl}` : ''}
+
+要求：
+1. 创作一篇符合小红书平台调性的爆款文案
+2. 文案要有吸引人的标题和正文内容
+3. 使用 Emoji、分段、列表等增强可读性，但**严禁使用加粗语法**
+4. 直接输出文案内容，不要包含任何元数据或说明性文字
+5. 字数控制在300-500字之间
+6. 添加3-5个相关话题标签
+
+请直接返回文案内容：`
+        
+        const content = await getAIResponse(prompt, { onStream })
+        return {
+          data: {
+            success: true,
+            content: content
+          }
+        }
+      } else {
+        // 非流式生成（调用后端API）
+        const response = await api.post('/enhanced/generate-content', {
+          keywords,
+          userMessage,
+          uploadedImageUrl
+        })
+        return { data: response.data }
+      }
+    } catch (error) {
+      console.error('增强版文案生成失败:', error)
+      throw error
+    }
+  },
+
+  /**
+   * 阶段1：生成图像提示词（第2次AI调用）
+   * @param {string} content - 生成的文案内容
+   * @param {string} uploadedImageUrl - 用户上传的原始图片URL
+   */
+  async generatePrompts(content, uploadedImageUrl = null) {
+    try {
+      const response = await api.post('/enhanced/generate-prompts', {
+        content,
+        uploadedImageUrl
+      })
+      return { data: response.data }
+    } catch (error) {
+      console.error('提示词生成失败:', error)
+      throw error
+    }
+  },
+
+  /**
+   * 阶段1：生成配图（图像生成）
+   * @param {Array<string>} prompts - 3个提示词
+   * @param {string} uploadedImageUrl - 用户上传的原始图片URL
+   */
+  async generateImages(prompts, uploadedImageUrl = null) {
+    try {
+      const response = await api.post('/enhanced/generate-images', {
+        prompts,
+        uploadedImageUrl
+      })
+      return { data: response.data }
+    } catch (error) {
+      console.error('图像生成失败:', error)
+      throw error
+    }
+  },
+
+  /**
+   * 阶段3：编辑文案（第3次AI调用）
+   * @param {string} originalContent - 原始文案
+   * @param {string} userFeedback - 用户修改想法
+   * @param {Function} onStream - 流式回调（可选）
+   */
+  async editContent(originalContent, userFeedback, onStream = null) {
+    try {
+      if (onStream) {
+        const prompt = `你是一个专业的小红书内容编辑专家。用户对当前文案提出了修改意见，请根据用户的反馈重新优化文案。
+
+【原始文案】
+${originalContent}
+
+【用户修改意见】
+${userFeedback}
+
+要求：
+1. 根据用户反馈调整文案内容和风格
+2. 保持小红书平台调性和爆款特征
+3. 使用 Emoji、分段、列表等增强可读性，但**严禁使用加粗语法**
+4. 直接输出修改后的文案，不要包含说明性文字
+5. 字数控制在300-500字之间
+
+请直接返回修改后的文案：`
+        
+        const content = await getAIResponse(prompt, { onStream })
+        return {
+          data: {
+            success: true,
+            content: content
+          }
+        }
+      } else {
+        const response = await api.post('/enhanced/edit-content', {
+          originalContent,
+          userFeedback
+        })
+        return { data: response.data }
+      }
+    } catch (error) {
+      console.error('文案编辑失败:', error)
+      throw error
+    }
+  },
+
+  /**
+   * 阶段3：优化提示词（第4次AI调用）
+   * @param {Array<string>} originalPrompts - 原始提示词
+   * @param {string} userImageFeedback - 用户对图片的修改想法
+   * @param {string} referenceImageUrl - 用户上传的新参考图
+   */
+  async optimizePrompts(originalPrompts, userImageFeedback, referenceImageUrl = null) {
+    try {
+      const response = await api.post('/enhanced/optimize-prompts', {
+        originalPrompts,
+        userImageFeedback,
+        referenceImageUrl
+      })
+      return { data: response.data }
+    } catch (error) {
+      console.error('提示词优化失败:', error)
+      throw error
+    }
+  },
+
+  /**
+   * 阶段3：编辑图像
+   * @param {Array<string>} optimizedPrompts - 优化后的提示词
+   * @param {string} referenceImageUrl - 参考图片URL
+   */
+  async editImages(optimizedPrompts, referenceImageUrl = null) {
+    try {
+      const response = await api.post('/enhanced/edit-images', {
+        optimizedPrompts,
+        referenceImageUrl
+      })
+      return { data: response.data }
+    } catch (error) {
+      console.error('图像编辑失败:', error)
+      throw error
+    }
+  },
+
+  /**
+   * 阶5：生成最终质量分析（支持流式输出）
+   * @param {string} content - 最终文案内容
+   * @param {Function} onStream - 流式回调（可选）
+   */
+  async generateFinalAnalysis(content, onStream = null) {
+    try {
+      if (onStream) {
+        // 流式生成（直接调用 AI API）
+        const prompt = `你是一个专业的小红书内容质量分析专家。请对以下文案进行全方位的质量分析。
+
+【文案内容】
+${content}
+
+请从以下四个维度进行简洁分析：
+
+1. **Hook分析**：开头类型、有效性评分(1-10)、原因
+2. **框架分析**：识别框架类型、框架优势
+3. **结构分析**：逻辑流畅度、互动引导、优化建议
+4. **平台适配**：情感感染力/实用价值/行动引导评分(1-10)
+
+请以清晰的分段文本格式返回，字数控制在300字内：`
+
+        const analysis = await getAIResponse(prompt, { onStream })
+        return {
+          data: {
+            success: true,
+            analysis: analysis
+          }
+        }
+      } else {
+        // 非流式生成（调用后端 API）
+        const response = await api.post('/enhanced/final-analysis', {
+          content
+        })
+        return { data: response.data }
+      }
+    } catch (error) {
+      console.error('质量分析生成失败:', error)
+      throw error
+    }
+  },
+
+  /**
+   * 一键完整流程（用于测试）
+   */
+  async fullProcess(keywords, userMessage, uploadedImageUrl = null) {
+    try {
+      const response = await api.post('/enhanced/full-process', {
+        keywords,
+        userMessage,
+        uploadedImageUrl
+      })
+      return { data: response.data }
+    } catch (error) {
+      console.error('完整流程执行失败:', error)
+      throw error
     }
   }
 }
