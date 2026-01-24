@@ -3,20 +3,84 @@
   <div v-if="visible" class="pill-input-wrapper" :class="{ 'with-recommendations': showQuickKeywords }">
     <!-- 已上传图片预览（仅增强模式显示） -->
     <transition name="fade-slide">
-      <div v-if="enhancedMode && uploadedImageUrl" class="uploaded-image-preview">
-        <n-image
-          :src="uploadedImageUrl"
-          width="60"
-          height="60"
-          object-fit="cover"
-          preview-disabled
-          style="border-radius: 8px;"
-        />
-        <n-text depth="3" style="font-size: 12px; margin-left: 8px;">已上传参考图，将用于AI分析</n-text>
-        <n-button text type="error" size="small" @click="handleRemoveImage" style="margin-left: auto;">
+      <div v-if="enhancedMode && uploadedImages.length > 0" class="uploaded-image-preview">
+        <div class="uploaded-images-grid">
+          <div v-for="(img, index) in uploadedImages" :key="index" class="uploaded-image-item">
+            <n-image
+              :src="img"
+              width="60"
+              height="60"
+              object-fit="cover"
+              preview-disabled
+              style="border-radius: 8px;"
+            />
+            <n-button text type="error" size="tiny" class="remove-image-btn" @click="removeImage(index)">
+              <template #icon><n-icon size="12"><close-outlined /></n-icon></template>
+            </n-button>
+          </div>
+        </div>
+        <n-text depth="3" style="font-size: 12px; margin-left: 8px;">已上传 {{ uploadedImages.length }} 张参考图</n-text>
+        <n-button text type="error" size="small" @click="handleRemoveAllImages" style="margin-left: auto;">
           <template #icon><n-icon><delete-outlined /></n-icon></template>
-          移除
+          全部移除
         </n-button>
+      </div>
+    </transition>
+    
+    <!-- 设置面板（仅增强模式显示） -->
+    <transition name="fade-slide">
+      <div v-if="enhancedMode && showSettingsPanel" class="settings-panel">
+        <div class="settings-row">
+          <div class="setting-item">
+            <span class="setting-label">尺寸</span>
+            <n-select 
+              v-model:value="imageSettings.size" 
+              :options="sizeOptions" 
+              size="small"
+              style="width: 140px"
+            />
+          </div>
+          <div class="setting-item">
+            <span class="setting-label">清晰度</span>
+            <n-radio-group v-model:value="imageSettings.quality" size="small">
+              <n-radio-button value="2K">2K</n-radio-button>
+              <n-radio-button value="4K">4K</n-radio-button>
+            </n-radio-group>
+          </div>
+          <div class="setting-item">
+            <span class="setting-label">张数</span>
+            <n-input-number 
+              v-model:value="imageSettings.count" 
+              :min="1" 
+              :max="15"
+              size="small"
+              style="width: 80px"
+            />
+          </div>
+          <div class="setting-item">
+            <span class="setting-label">广告标语</span>
+            <n-switch v-model:value="imageSettings.enableSlogan" size="small" />
+          </div>
+        </div>
+        
+        <!-- 广告标语配置（条件显示） -->
+        <transition name="fade-slide">
+          <div v-if="imageSettings.enableSlogan" class="slogan-config">
+            <n-input
+              v-model:value="imageSettings.sloganText"
+              placeholder="输入广告标语文字..."
+              size="small"
+              style="flex: 1"
+            />
+            <n-select
+              v-model:value="imageSettings.sloganStyle"
+              :options="sloganStyleOptions"
+              size="small"
+              style="width: 120px"
+              placeholder="样式"
+            />
+          </div>
+        </transition>
       </div>
     </transition>
     
@@ -27,12 +91,12 @@
         ref="uploadRef"
         :show-file-list="false"
         :on-change="handleImageUpload"
-        :on-remove="handleRemoveImage"
         accept="image/*"
-        :max="1"
+        :max="6"
+        multiple
         :file-list="fileList"
       >
-        <n-button quaternary circle class="add-btn" :type="uploadedImageUrl ? 'primary' : 'default'">
+        <n-button quaternary circle class="add-btn" :type="uploadedImages.length > 0 ? 'primary' : 'default'">
           <template #icon><n-icon><plus-outlined /></n-icon></template>
         </n-button>
       </n-upload>
@@ -50,6 +114,18 @@
         <n-button quaternary circle @click="showQuickKeywords = !showQuickKeywords" :active="showQuickKeywords">
           <template #icon><n-icon><appstore-outlined /></n-icon></template>
         </n-button>
+        
+        <!-- 设置按钮（仅增强模式显示） -->
+        <n-button 
+          v-if="enhancedMode"
+          quaternary 
+          circle 
+          @click="showSettingsPanel = !showSettingsPanel" 
+          :type="showSettingsPanel ? 'primary' : 'default'"
+        >
+          <template #icon><n-icon><setting-outlined /></n-icon></template>
+        </n-button>
+        
         <n-button quaternary circle @click="message.info('语音识别功能开发中...')">
           <template #icon><n-icon><audio-outlined /></n-icon></template>
         </n-button>
@@ -126,7 +202,9 @@ import {
   DownOutlined,
   UpOutlined,
   RocketOutlined,
-  DeleteOutlined
+  DeleteOutlined,
+  SettingOutlined,
+  CloseOutlined
 } from '@vicons/antd'
 
 const props = defineProps({
@@ -136,17 +214,46 @@ const props = defineProps({
   }
 })
 
-const emit = defineEmits(['analyzed', 'enhancedModeChange', 'imageUploaded', 'imageRemoved'])
+const emit = defineEmits(['analyzed', 'enhancedModeChange', 'imageUploaded', 'imageRemoved', 'settingsChanged'])
 const message = useMessage()
 
 const keywords = ref('')
 const showQuickKeywords = ref(true)
+const showSettingsPanel = ref(false)
 const visible = ref(true)
 const enhancedMode = ref(false)  // 增强模式标志
-const uploadedImageUrl = ref(null)  // 上传的图片URL
+const uploadedImages = ref([])  // 多图上传支持
 const uploadingImage = ref(false)  // 上传中状态
 const uploadRef = ref(null)  // 上传组件引用
 const fileList = ref([])  // 文件列表，用于控制n-upload状态
+
+// 图像生成设置
+const imageSettings = ref({
+  size: '1664x928',
+  quality: '2K',
+  count: 3,
+  enableSlogan: false,
+  sloganText: '',
+  sloganStyle: 'xiaohongshu'
+})
+
+// 尺寸选项
+const sizeOptions = [
+  { label: '1664x928 (横屏)', value: '1664x928' },
+  { label: '1024x1024 (正方形)', value: '1024x1024' },
+  { label: '720x1280 (竖屏)', value: '720x1280' },
+  { label: '1280x720 (16:9)', value: '1280x720' },
+  { label: '768x1344', value: '768x1344' },
+  { label: '1344x768', value: '1344x768' }
+]
+
+// 标语样式选项
+const sloganStyleOptions = [
+  { label: '小红书标题', value: 'xiaohongshu' },
+  { label: '电商促销', value: 'ecommerce' },
+  { label: '品牌宣传', value: 'brand' },
+  { label: '极简海报', value: 'minimal' }
+]
 
 const hotKeywords = [
   { label: '联网搜索', icon: GlobalOutlined, key: 'search' },
@@ -180,7 +287,9 @@ const handleAnalyze = async () => {
   emit('analyzed', {
     keywords: keywords.value,
     tools: activeTools.value,
-    enhancedMode: enhancedMode.value  // 传递增强模式标志
+    enhancedMode: enhancedMode.value,
+    uploadedImages: uploadedImages.value,
+    imageSettings: imageSettings.value
   })
 }
 
@@ -193,53 +302,73 @@ const toggleEnhancedMode = () => {
     message.success('已切换到增强模式，支持多轮迭代优化')
   } else {
     message.info('已切换到普通模式')
+    showSettingsPanel.value = false
   }
 }
 
 /**
- * 处理图片上传
+ * 处理图片上传（支持多图）
  * @param {Object} options - 上传选项
  */
 const handleImageUpload = async ({ file }) => {
   if (!file.file) return
   
+  // 检查数量限制
+  if (uploadedImages.value.length >= 6) {
+    message.warning('最多上传6张参考图')
+    return
+  }
+  
   try {
     uploadingImage.value = true
-    message.loading('正在上传图片...', { duration: 0, key: 'upload' })
     
-    // 将图片转换为Base64或上传到图床
+    // 将图片转换为Base64
     const reader = new FileReader()
     reader.onload = (e) => {
       const base64Url = e.target.result
-      uploadedImageUrl.value = base64Url
-      emit('imageUploaded', base64Url)
-      message.destroyAll()
+      uploadedImages.value.push(base64Url)
+      emit('imageUploaded', uploadedImages.value)
       message.success('图片上传成功！')
       uploadingImage.value = false
     }
     reader.onerror = () => {
-      message.destroyAll()
       message.error('图片读取失败')
       uploadingImage.value = false
     }
     reader.readAsDataURL(file.file)
   } catch (error) {
     console.error('图片上传失败:', error)
-    message.destroyAll()
     message.error('图片上传失败，请重试')
     uploadingImage.value = false
   }
 }
 
 /**
- * 移除已上传的图片
+ * 移除单张图片
  */
-const handleRemoveImage = () => {
-  uploadedImageUrl.value = null
-  fileList.value = []  // 清空文件列表，让n-upload组件可以再次上传
-  emit('imageRemoved')
-  message.info('已移除图片')
+const removeImage = (index) => {
+  uploadedImages.value.splice(index, 1)
+  emit('imageUploaded', uploadedImages.value)
 }
+
+/**
+ * 移除所有图片
+ */
+const handleRemoveAllImages = () => {
+  uploadedImages.value = []
+  fileList.value = []
+  emit('imageRemoved')
+  message.info('已移除所有图片')
+}
+
+// 兼容旧的单图接口
+const uploadedImageUrl = ref(null)
+const handleRemoveImage = handleRemoveAllImages
+
+// 监听设置变化
+watch(imageSettings, (newSettings) => {
+  emit('settingsChanged', newSettings)
+}, { deep: true })
 
 const setValues = (data) => {
   keywords.value = data.keywords || ''
@@ -249,9 +378,15 @@ defineExpose({
   setValues,
   getEnhancedMode: () => enhancedMode.value,
   setEnhancedMode: (val) => { enhancedMode.value = val },
-  getUploadedImageUrl: () => uploadedImageUrl.value,
-  setUploadedImageUrl: (url) => { uploadedImageUrl.value = url },
-  clearImage: () => { uploadedImageUrl.value = null }
+  getUploadedImageUrl: () => uploadedImages.value[0] || null,
+  getUploadedImages: () => uploadedImages.value,
+  setUploadedImageUrl: (url) => { 
+    if (url) uploadedImages.value = [url]
+  },
+  setUploadedImages: (urls) => { uploadedImages.value = urls || [] },
+  clearImage: () => { uploadedImages.value = [] },
+  getImageSettings: () => imageSettings.value,
+  setImageSettings: (settings) => { Object.assign(imageSettings.value, settings) }
 })
 </script>
 
@@ -274,7 +409,66 @@ defineExpose({
   border-radius: 16px;
   border: 1px solid rgba(59, 130, 246, 0.2);
   width: 100%;
-  max-width: 600px;
+  max-width: 700px;
+}
+
+.uploaded-images-grid {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.uploaded-image-item {
+  position: relative;
+}
+
+.remove-image-btn {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 50%;
+  padding: 2px;
+}
+
+/* 设置面板 */
+.settings-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px 20px;
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 16px;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  width: 100%;
+  max-width: 700px;
+  backdrop-filter: blur(10px);
+}
+
+.settings-row {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+.setting-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.setting-label {
+  font-size: 13px;
+  color: #666;
+  white-space: nowrap;
+}
+
+.slogan-config {
+  display: flex;
+  gap: 12px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(0, 0, 0, 0.05);
 }
 
 .input-main-pill {

@@ -112,6 +112,7 @@
         :analyzing="generating"
         @imageUploaded="handleImageUpload"
         @imageRemoved="handleImageRemove"
+        @settingsChanged="handleSettingsChanged"
         class="floating-input-bar"
       />
     </div>
@@ -230,6 +231,15 @@ const currentSessionId = ref(null)
 const iterationCount = ref(0)
 const currentPrompts = ref([])
 const uploadedImageUrl = ref(null)
+const uploadedImages = ref([])  // 多图支持
+const imageSettings = ref({     // 图像生成设置
+  size: '1440x2560',
+  quality: '2K',
+  count: 3,
+  enableSlogan: false,
+  sloganText: '',
+  sloganStyle: 'xiaohongshu'
+})
 
 // 计算当前侧边栏宽度
 const currentSidebarWidth = computed(() => {
@@ -272,12 +282,19 @@ const addLog = (title, content, type = 'info') => {
 }
 
 /**
- * 处理图片上传
- * @param {string} imageUrl - 图片的Base64或URL
+ * 处理图片上传（支持多图）
+ * @param {string|string[]} images - 图片的Base64或URL数组
  */
-const handleImageUpload = (imageUrl) => {
-  uploadedImageUrl.value = imageUrl
-  console.log('[图片上传成功]', imageUrl.substring(0, 50) + '...')
+const handleImageUpload = (images) => {
+  // 兼容单图和多图
+  if (Array.isArray(images)) {
+    uploadedImages.value = images
+    uploadedImageUrl.value = images[0] || null
+  } else {
+    uploadedImages.value = images ? [images] : []
+    uploadedImageUrl.value = images
+  }
+  console.log('[图片上传成功] 数量:', uploadedImages.value.length)
   message.success('图片已上传，将用于AI分析')
 }
 
@@ -286,7 +303,17 @@ const handleImageUpload = (imageUrl) => {
  */
 const handleImageRemove = () => {
   uploadedImageUrl.value = null
+  uploadedImages.value = []
   console.log('[图片已移除]')
+}
+
+/**
+ * 处理图像设置变更
+ * @param {Object} settings - 新的设置对象
+ */
+const handleSettingsChanged = (settings) => {
+  imageSettings.value = { ...imageSettings.value, ...settings }
+  console.log('[图像设置已更新]', imageSettings.value)
 }
 
 /**
@@ -297,13 +324,32 @@ const handleQuickGenerate = async (data) => {
   currentSpecialRequirements.value = data.specialRequirements || ''
   enhancedMode.value = data.enhancedMode || false
   
-  // 从 KeywordInput 组件获取已上传的图片URL
-  if (keywordInputRef.value) {
-    const imgUrl = keywordInputRef.value.getUploadedImageUrl()
-    if (imgUrl) {
-      uploadedImageUrl.value = imgUrl
-      console.log('[检测到上传图片]', imgUrl.substring(0, 50) + '...')
+  // 处理多图上传
+  if (data.uploadedImages && data.uploadedImages.length > 0) {
+    uploadedImages.value = data.uploadedImages
+    uploadedImageUrl.value = data.uploadedImages[0]
+    console.log('[检测到上传图片] 数量:', data.uploadedImages.length)
+  } else if (keywordInputRef.value) {
+    // 从 KeywordInput 组件获取已上传的图片
+    const imgs = keywordInputRef.value.getUploadedImages?.() || []
+    if (imgs.length > 0) {
+      uploadedImages.value = imgs
+      uploadedImageUrl.value = imgs[0]
+      console.log('[检测到上传图片] 数量:', imgs.length)
+    } else {
+      const imgUrl = keywordInputRef.value.getUploadedImageUrl()
+      if (imgUrl) {
+        uploadedImageUrl.value = imgUrl
+        uploadedImages.value = [imgUrl]
+        console.log('[检测到上传图片]', imgUrl.substring(0, 50) + '...')
+      }
     }
+  }
+  
+  // 处理图像设置
+  if (data.imageSettings) {
+    imageSettings.value = { ...imageSettings.value, ...data.imageSettings }
+    console.log('[图像设置]', imageSettings.value)
   }
   
   if (!currentKeywords.value) {
@@ -647,7 +693,7 @@ const handleSatisfied = async () => {
 }
 
 /**
- * 处理用户修改请求
+ * 处理用户修改请求（并行优化版本）
  */
 const handleEdit = async (editData) => {
   try {
@@ -658,49 +704,61 @@ const handleEdit = async (editData) => {
     
     addLog(`第${iterationCount.value}次修改`, '正在根据您的反馈优化内容...', 'info')
     
-    // 第3次AI调用：编辑文案
-    addLog('步骤1/3', '正在修改文案...', 'info')
-    generationProgress.value = 20
+    // 准备参考图（支持多图）
+    const referenceImages = editData.referenceImages || (editData.referenceImageUrl ? [editData.referenceImageUrl] : [])
     
-    const editedContentResponse = await enhancedAPI.editContent(
+    // 并行执行文案编辑和提示词优化
+    addLog('并行处理', '正在同时优化文案和图片提示词...', 'info')
+    generationProgress.value = 10
+    
+    // 创建并行任务
+    const editContentPromise = enhancedAPI.editContent(
       generatedContent.value.content,
       editData.contentFeedback,
       (fullContent, delta) => {
         // 实时更新文案内容（流式输出）
         generatedContent.value = { content: fullContent, isRawText: true }
         editedContent.value = { content: fullContent, isRawText: true }
-        if (generationProgress.value < 40) {
-          addLog('文案修改', '正在根据您的反馈重新生成文案...', 'success')
-          generationProgress.value = 40
-        }
       }
     )
     
-    generatedContent.value = { content: editedContentResponse.data.content, isRawText: true }
-    editedContent.value = { content: editedContentResponse.data.content, isRawText: true }
-    generationProgress.value = 50
-    
-    // 第4次AI调用：优化提示词
-    addLog('步骤2/3', '正在优化图片提示词...', 'info')
-    const optimizedPromptsResponse = await enhancedAPI.optimizePrompts(
+    const optimizePromptsPromise = enhancedAPI.optimizePrompts(
       currentPrompts.value,
       editData.imageFeedback,
-      editData.referenceImageUrl
+      referenceImages[0] || null  // 主参考图
     )
     
+    // 并行等待两个任务完成
+    addLog('步骤1/2', '文案修改和提示词优化并行进行中...', 'info')
+    generationProgress.value = 20
+    
+    const [editedContentResponse, optimizedPromptsResponse] = await Promise.all([
+      editContentPromise,
+      optimizePromptsPromise
+    ])
+    
+    // 处理文案编辑结果
+    if (editedContentResponse.data.success !== false) {
+      generatedContent.value = { content: editedContentResponse.data.content, isRawText: true }
+      editedContent.value = { content: editedContentResponse.data.content, isRawText: true }
+      addLog('文案修改', '文案已根据反馈优化完成', 'success')
+    }
+    
+    // 处理提示词优化结果
     if (optimizedPromptsResponse.data.success) {
       currentPrompts.value = optimizedPromptsResponse.data.prompts
       addLog('提示词优化', `已优化${currentPrompts.value.length}个提示词`, 'success')
-      generationProgress.value = 70
     }
     
-    // 图像编辑
-    addLog('步骤3/3', '正在重新生成图片...', 'info')
+    generationProgress.value = 60
+    
+    // 图像编辑（使用优化后的提示词和参考图）
+    addLog('步骤2/2', '正在重新生成图片...', 'info')
     imageGenerating.value = true
     
     const editedImagesResponse = await enhancedAPI.editImages(
       currentPrompts.value,
-      editData.referenceImageUrl || uploadedImageUrl.value
+      referenceImages[0] || uploadedImageUrl.value  // 使用第一张参考图或原始上传图
     )
     
     if (editedImagesResponse.data.success) {
@@ -717,11 +775,12 @@ const handleEdit = async (editData) => {
       prompts: currentPrompts.value,
       images: generatedImages.value,
       contentFeedback: editData.contentFeedback,
-      imageFeedback: editData.imageFeedback
+      imageFeedback: editData.imageFeedback,
+      referenceImages: referenceImages
     })
     
     message.success(`第${iterationCount.value}次优化完成！`)
-    addLog('优化完成', `第${iterationCount.value}次优化完成`, 'success')
+    addLog('优化完成', `第${iterationCount.value}次优化完成（并行处理）`, 'success')
     
     // 延迟再次显示满意度模态框
     setTimeout(() => {
