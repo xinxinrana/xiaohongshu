@@ -145,7 +145,7 @@ const processing = ref(false)
 const includeImages = ref(true)
 const concurrency = ref(1)
 const queue = ref([])
-const results = ref([])
+const results = computed(() => queue.value.filter(item => item.status === 'completed'))
 const showPreviewModal = ref(false)
 const previewingItem = ref(null)
 
@@ -167,7 +167,6 @@ const startBatch = async () => {
   if (!list.length) return
 
   processing.value = true
-  results.value = []
   queue.value = list.map(req => ({
     requirement: req,
     status: 'pending',
@@ -176,10 +175,27 @@ const startBatch = async () => {
     images: []
   }))
 
-  // 简单的并发控制处理
-  for (let i = 0; i < queue.value.length; i++) {
-    await processItem(i)
+  // 真正的并发控制处理
+  const limit = concurrency.value || 1
+  const tasks = [...Array(queue.value.length).keys()]
+  let currentIndex = 0
+
+  /**
+   * 内部任务消费者：从队列中提取任务并执行
+   */
+  const worker = async () => {
+    while (currentIndex < tasks.length) {
+      const taskIndex = currentIndex++
+      await processItem(taskIndex)
+    }
   }
+
+  // 启动指定数量的并发 worker
+  const workers = Array(Math.min(limit, tasks.length))
+    .fill(null)
+    .map(() => worker())
+
+  await Promise.all(workers)
 
   processing.value = false
   message.success('批量生成任务已完成')
@@ -214,11 +230,6 @@ const processItem = async (index) => {
       
       item.status = 'completed'
       item.progress = 100
-      results.value.push({
-        requirement: item.requirement,
-        content: item.content,
-        images: item.images
-      })
     } else {
       throw new Error('生成文案失败')
     }
