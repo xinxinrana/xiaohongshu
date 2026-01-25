@@ -100,56 +100,147 @@ ${hasReferenceImage ? `用户上传了参考图片，请生成能够与参考图
   }
 
   /**
-   * 图像生成：调用 Doubao-Seedream-4.0 生成3张配图
-   * @param {Array<string>} prompts - 3个提示词
-   * @param {string} uploadedImageUrl - 用户上传的原始图片URL（可选，用于图生图）
-   * @returns {Promise<Array<string>>} 3个图片URL
+   * 图像生成：调用 Doubao-Seedream-4.5 生成配图
+   * @param {Array<string>} prompts - 提示词数组
+   * @param {Object} options - 生成选项
+   * @param {string|string[]} options.uploadedImages - 参考图URL数组或单个URL
+   * @param {string} options.size - 图像尺寸
+   * @param {number} options.count - 生成数量
+   * @param {string} options.quality - 清晰度
+   * @param {boolean} options.enableSlogan - 是否启用广告标语
+   * @param {Object} options.sloganConfig - 标语配置
+   * @returns {Promise<Object>} 图片URL数组
    */
-  static async generateImages(prompts, uploadedImageUrl = null) {
+  static async generateImages(prompts, options = {}) {
     try {
-      const imageUrls = []
+      // 兼容旧接口：如果第二个参数是字符串，转换为options格式
+      if (typeof options === 'string') {
+        options = { uploadedImages: options ? [options] : [] }
+      }
       
-      for (let i = 0; i < prompts.length; i++) {
-        const prompt = prompts[i]
+      const {
+        uploadedImages = [],
+        size = '1440x2560',
+        count,
+        quality = '2K',
+        enableSlogan = false,
+        sloganConfig = {}
+      } = options
+      
+      // 标准化uploadedImages为数组
+      const imageUrls = Array.isArray(uploadedImages) 
+        ? uploadedImages 
+        : (uploadedImages ? [uploadedImages] : [])
+      
+      const hasReferenceImage = imageUrls.length > 0
+      const mainReferenceImage = imageUrls[0] || null
+      
+      // 确定实际生成数量
+      const actualCount = count || prompts.length || 3
+      const promptsToUse = prompts.slice(0, actualCount)
+      
+      // 如果提示词不够，复制最后一个
+      while (promptsToUse.length < actualCount) {
+        promptsToUse.push(promptsToUse[promptsToUse.length - 1] || '小红书风格，时尚，清新')
+      }
+      
+      const generatedUrls = []
+      
+      for (let i = 0; i < promptsToUse.length; i++) {
+        let prompt = promptsToUse[i]
+        
+        // 如果启用广告标语，增强提示词
+        if (enableSlogan && sloganConfig.text) {
+          prompt = this.buildSloganPrompt(prompt, sloganConfig)
+        }
         
         try {
           let result
           
-          if (uploadedImageUrl) {
-            result = await ImageService.generateImageFromImage(uploadedImageUrl, prompt, {
-              size: '1664x928',
+          if (hasReferenceImage) {
+            // 图生图模式
+            result = await ImageService.generateImageFromImage(mainReferenceImage, prompt, {
+              size: size,
               watermark: false
             })
           } else {
+            // 文生图模式
             result = await ImageService.generateImageFromText(prompt, {
-              size: '1664x928',
+              size: size,
               watermark: false,
               prompt_extend: true
             })
           }
           
           if (result.success && result.data) {
-            const taskId = result.data.data?.task_id || result.data.data?.request_id
-            if (taskId) {
-              const imageUrl = await this.pollTaskStatus(taskId)
-              if (imageUrl) {
-                imageUrls.push(imageUrl)
-              }
+            const taskData = result.data.data || {}
+            const imageUrl = taskData.data?.image_urls?.[0]
+            
+            if (imageUrl) {
+              generatedUrls.push(imageUrl)
             }
           }
         } catch (error) {
+          console.error(`[图像生成] 第${i + 1}张生成失败:`, error.message)
           // 继续尝试生成其他图片
         }
       }
       
       return {
-        success: true,
-        images: imageUrls,
-        count: imageUrls.length
+        success: generatedUrls.length > 0,
+        images: generatedUrls,
+        count: generatedUrls.length,
+        requested: promptsToUse.length
       }
     } catch (error) {
+      console.error('图像生成失败:', error)
       throw new Error(`图像生成失败: ${error.message}`)
     }
+  }
+
+  /**
+   * 构建广告标语增强提示词
+   * @param {string} basePrompt - 基础提示词
+   * @param {Object} sloganConfig - 标语配置
+   * @returns {string} 增强后的提示词
+   */
+  static buildSloganPrompt(basePrompt, sloganConfig) {
+    if (!sloganConfig || !sloganConfig.text) {
+      return basePrompt
+    }
+    
+    const {
+      text,
+      fontStyle = '粗体现代',
+      color = '高对比色',
+      position = '上方居中',
+      layout = '单行横排'
+    } = sloganConfig
+    
+    // 根据样式预设调整参数
+    const stylePresets = {
+      xiaohongshu: { fontStyle: '粗体圆润', color: '白色带阴影', position: '上方三分之一', layout: '居中横排' },
+      ecommerce: { fontStyle: '粗体冲击', color: '红色/黄色', position: '居中偏上', layout: '大号单行' },
+      brand: { fontStyle: '优雅衬线', color: '金色/深色', position: '下方三分之一', layout: '居中多行' },
+      minimal: { fontStyle: '细体现代', color: '黑色/白色', position: '居中', layout: '大号单行' }
+    }
+    
+    const preset = stylePresets[sloganConfig.style] || {}
+    const finalFontStyle = preset.fontStyle || fontStyle
+    const finalColor = preset.color || color
+    const finalPosition = preset.position || position
+    const finalLayout = preset.layout || layout
+    
+    const textInstruction = `
+【文字渲染需求】
+- 在图像中清晰呈现文字："${text}"
+- 文字风格：${finalFontStyle}，专业设计感
+- 文字颜色：${finalColor}，与背景形成鲜明对比
+- 文字位置：${finalPosition}
+- 文字排版：${finalLayout}，字号醒目易读
+- 整体要求：文字与画面和谐融合，具有商业广告效果，文字清晰可辨认`
+    
+    return `${basePrompt}\n${textInstruction}`
   }
 
   /**
@@ -160,40 +251,26 @@ ${hasReferenceImage ? `用户上传了参考图片，请生成能够与参考图
    * @returns {Promise<string|null>} 图片URL或null
    */
   static async pollTaskStatus(taskId, maxAttempts = 30, interval = 2000) {
-    for (let attempt = 0; attempt < maxAttempts; attempt++) {
-      try {
-        const statusResult = await ImageService.queryTaskStatus(taskId)
+    // 火山引擎API是同步返回的，不需要轮询
+    // 但保留这个方法以兼容现有逻辑
+    console.log('[轮询任务] 火山引擎API是同步返回，无需轮询，taskId:', taskId)
+    
+    try {
+      const statusResult = await ImageService.queryTaskStatus(taskId)
+      
+      if (statusResult.success && statusResult.data) {
+        const taskData = statusResult.data.data?.data || {}
+        const imageUrls = taskData.image_urls || []
         
-        if (statusResult.success && statusResult.data) {
-          const status = statusResult.data.data?.status
-          
-          if (status === 'COMPLETED' || status === 'SUCCEED') {
-            const taskData = statusResult.data.data?.data || {}
-            const imageUrls = taskData.image_urls || []
-            const images = taskData.images || []
-            
-            if (imageUrls.length > 0) {
-              return imageUrls[0]
-            } else if (images.length > 0 && images[0].url) {
-              return images[0].url
-            }
-            return null
-          } else if (status === 'FAILED') {
-            return null
-          }
-        }
-        
-        if (attempt < maxAttempts - 1) {
-          await new Promise(resolve => setTimeout(resolve, interval))
-        }
-      } catch (error) {
-        if (attempt < maxAttempts - 1) {
-          await new Promise(resolve => setTimeout(resolve, interval))
+        if (imageUrls.length > 0) {
+          return imageUrls[0]
         }
       }
+      return null
+    } catch (error) {
+      console.error('[轮询任务] 查询失败:', error)
+      return null
     }
-    
-    return null
   }
 
   /**
@@ -295,12 +372,16 @@ ${hasReferenceImage ? `用户上传了新的参考图片，请生成能够与参
   /**
    * 图像编辑：根据优化后的提示词和参考图重新生成图片
    * @param {Array<string>} optimizedPrompts - 优化后的提示词
-   * @param {string} referenceImageUrl - 用户上传的参考图（可选）
-   * @returns {Promise<Array<string>>} 3个新图片URL
+   * @param {Object} options - 生成选项（支持多图、尺寸等）
+   * @returns {Promise<Object>} 新图片URL数组
    */
-  static async editImages(optimizedPrompts, referenceImageUrl = null) {
+  static async editImages(optimizedPrompts, options = {}) {
     try {
-      return await this.generateImages(optimizedPrompts, referenceImageUrl)
+      // 兼容旧接口
+      if (typeof options === 'string') {
+        options = { uploadedImages: options ? [options] : [] }
+      }
+      return await this.generateImages(optimizedPrompts, options)
     } catch (error) {
       console.error('图像编辑失败:', error)
       throw new Error(`图像编辑失败: ${error.message}`)

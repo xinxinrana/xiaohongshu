@@ -77,10 +77,19 @@ export async function generatePrompts(req, res) {
  */
 export async function generateImages(req, res) {
   try {
-    const { prompts, uploadedImageUrl } = req.body
+    const { 
+      prompts, 
+      uploadedImageUrl,
+      uploadedImages,
+      size,
+      count,
+      quality,
+      negativePrompt,
+      enableSlogan,
+      sloganConfig
+    } = req.body
     
-    console.log('[接收到图像生成请求] prompts数量:', prompts?.length, 'uploadedImageUrl:', uploadedImageUrl)
-    console.log('prompts内容:', prompts)
+    console.log('[接收到图像生成请求] prompts数量:', prompts?.length)
     
     if (!prompts || !Array.isArray(prompts) || prompts.length === 0) {
       console.error('图像生成失败: 提示词数组为空')
@@ -90,11 +99,18 @@ export async function generateImages(req, res) {
       })
     }
     
-    console.log('开始调用服务层生成图像（预计60秒）...')
-    const result = await EnhancedGenerationService.generateImages(
-      prompts,
-      uploadedImageUrl || null
-    )
+    // 构建选项对象
+    const options = {
+      uploadedImages: uploadedImages || (uploadedImageUrl ? [uploadedImageUrl] : []),
+      size: size || '1440x2560',
+      count: count,
+      quality: quality || '2K',
+      enableSlogan: enableSlogan || false,
+      sloganConfig: sloganConfig || {}
+    }
+    
+    console.log('开始调用服务层生成图像...')
+    const result = await EnhancedGenerationService.generateImages(prompts, options)
     
     console.log('[图像生成完成]', result)
     res.json(result)
@@ -174,7 +190,16 @@ export async function optimizePrompts(req, res) {
  */
 export async function editImages(req, res) {
   try {
-    const { optimizedPrompts, referenceImageUrl } = req.body
+    const { 
+      optimizedPrompts, 
+      referenceImageUrl,
+      referenceImages,
+      size,
+      count,
+      quality,
+      enableSlogan,
+      sloganConfig
+    } = req.body
     
     if (!optimizedPrompts || !Array.isArray(optimizedPrompts) || optimizedPrompts.length === 0) {
       return res.status(400).json({
@@ -183,10 +208,17 @@ export async function editImages(req, res) {
       })
     }
     
-    const result = await EnhancedGenerationService.editImages(
-      optimizedPrompts,
-      referenceImageUrl || null
-    )
+    // 构建选项对象
+    const options = {
+      uploadedImages: referenceImages || (referenceImageUrl ? [referenceImageUrl] : []),
+      size: size || '1440x2560',
+      count: count,
+      quality: quality || '2K',
+      enableSlogan: enableSlogan || false,
+      sloganConfig: sloganConfig || {}
+    }
+    
+    const result = await EnhancedGenerationService.editImages(optimizedPrompts, options)
     
     res.json(result)
   } catch (error) {

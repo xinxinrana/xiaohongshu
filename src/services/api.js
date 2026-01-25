@@ -7,7 +7,7 @@ import axios from 'axios'
 
 const api = axios.create({
   baseURL: '/api',
-  timeout: 180000 // 3分钟超时（图像生成需要轮询60秒）
+  timeout: 300000 // 5分钟超时（图像生成需要轮询60秒，多张图可能更久）
 })
 
 /**
@@ -33,54 +33,69 @@ const imageClient = axios.create({
     'Authorization': `Bearer ${import.meta.env.VITE_VOLCENGINE_API_KEY}`,
     'Content-Type': 'application/json'
   },
-  timeout: 120000 // 增加到 120 秒，图片生成和 AI 复杂推理可能需要更长时间
+  timeout: 300000 // 增加到 300 秒，图片生成和 AI 复杂推理可能需要更长时间
 })
 
-/**
- * 知识库 API
- */
-export const knowledgeAPI = {
-  /**
-   * 获取所有知识库条目
-   */
-  async getAll() {
-    const data = localStorage.getItem('xhs_knowledge_base')
-    return {
-      success: true,
-      data: data ? JSON.parse(data) : []
+const normalizeKeywords = (value) => {
+  if (Array.isArray(value)) return value.filter(Boolean)
+  if (typeof value === 'string') {
+    return value.split(/[,，、]/).map(v => v.trim()).filter(Boolean)
+  }
+  return []
+}
+
+const normalizeMemoryPayload = (item = {}) => {
+  return {
+    content: item.content || '',
+    metadata: {
+      title: item.title || '',
+      type: item.type || 'reference',
+      keywords: normalizeKeywords(item.keywords),
+      framework: item.framework || '',
+      qualityScore: Number(item.qualityScore) || 0
     }
+  }
+}
+
+export const knowledgeAPI = {
+  async getAll(params = {}) {
+    const response = await api.get('/agent/memory', { params })
+    return response.data
   },
 
-  /**
-   * 保存知识库条目
-   */
-  async save(items) {
-    localStorage.setItem('xhs_knowledge_base', JSON.stringify(items))
-    return { success: true }
+  async getById(id) {
+    const response = await api.get(`/agent/memory/${id}`)
+    return response.data
   },
 
-  /**
-   * 添加单个条目
-   */
   async add(item) {
-    const { data: items } = await this.getAll()
-    items.push({
-      id: Date.now().toString(),
-      ...item,
-      createdAt: new Date().toISOString()
-    })
-    await this.save(items)
-    return { success: true }
+    const response = await api.post('/agent/memory', normalizeMemoryPayload(item))
+    return response.data
   },
 
-  /**
-   * 删除单个条目
-   */
+  async update(id, item) {
+    const response = await api.put(`/agent/memory/${id}`, normalizeMemoryPayload(item))
+    return response.data
+  },
+
   async delete(id) {
-    const { data: items } = await this.getAll()
-    const filtered = items.filter(item => item.id !== id)
-    await this.save(filtered)
-    return { success: true }
+    const response = await api.delete(`/agent/memory/${id}`)
+    return response.data
+  },
+
+  async clear() {
+    const response = await api.delete('/agent/memory')
+    return response.data
+  },
+
+  async getStats() {
+    const response = await api.get('/agent/memory/stats')
+    return response.data
+  },
+
+  async retrieve(data) {
+    const response = await api.post('/agent/memory/retrieve', data)
+    return response.data
   }
 }
 
@@ -703,6 +718,292 @@ ${content}
       return { data: response.data }
     } catch (error) {
       console.error('完整流程执行失败:', error)
+      throw error
+    }
+  }
+}
+
+/**
+ * 图像工作台 API
+ */
+export const imageWorkbenchAPI = {
+  /**
+   * 文生图
+   * @param {Object} data - 请求参数
+   * @param {string} data.prompt - 提示词
+   * @param {string} data.size - 图像尺寸
+   * @param {boolean} data.watermark - 是否添加水印
+   */
+  async textToImage(data) {
+    try {
+      const response = await api.post('/image/text-to-image', data)
+      return response.data
+    } catch (error) {
+      console.error('文生图失败:', error)
+      throw error
+    }
+  },
+
+  /**
+   * 图生图
+   * @param {Object} data - 请求参数
+   * @param {string} data.imageUrl - 参考图URL或Base64
+   * @param {string} data.prompt - 提示词
+   */
+  async imageToImage(data) {
+    try {
+      const response = await api.post('/image/image-to-image', data)
+      return response.data
+    } catch (error) {
+      console.error('图生图失败:', error)
+      throw error
+    }
+  },
+
+  /**
+   * 多图融合生成
+   * @param {Object} data - 请求参数
+   * @param {string} data.prompt - 提示词
+   * @param {string[]} data.imageUrls - 参考图URL数组
+   * @param {string} data.size - 图像尺寸
+   * @param {string} data.resolution - 清晰度
+   */
+  async multiFusion(data) {
+    try {
+      const response = await api.post('/image/multi-fusion', data)
+      return response.data
+    } catch (error) {
+      console.error('多图融合失败:', error)
+      throw error
+    }
+  },
+
+  /**
+   * 批量图像生成
+   * @param {Object} data - 请求参数
+   * @param {string} data.prompt - 提示词
+   * @param {string[]} data.referenceImages - 参考图数组（可选）
+   * @param {number} data.max_images - 生成数量 1-15
+   * @param {string} data.size - 图像尺寸
+   * @param {string} data.resolution - 清晰度
+   * @param {string} data.negative_prompt - 负面提示词
+   */
+  async batchGeneration(data) {
+    try {
+      const response = await api.post('/image/batch-generation', data, {
+        timeout: 300000 // 5分钟超时，批量生成需要更长时间
+      })
+      return response.data
+    } catch (error) {
+      console.error('批量生成失败:', error)
+      throw error
+    }
+  },
+
+  /**
+   * 流式图像生成 (SSE)
+   * @param {Object} data - 请求参数
+   * @param {string} data.prompt - 提示词
+   * @param {string} data.size - 图像尺寸
+   * @param {string} data.referenceImage - 参考图（可选）
+   * @param {Function} onProgress - 进度回调
+   */
+  async streamGeneration(data, onProgress) {
+    try {
+      const response = await fetch('/api/image/stream-generation', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      })
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+
+      const reader = response.body.getReader()
+      const decoder = new TextDecoder('utf-8')
+      let result = null
+
+      while (true) {
+        const { done, value } = await reader.read()
+        if (done) break
+
+        const chunk = decoder.decode(value, { stream: true })
+        const lines = chunk.split('\n').filter(line => line.trim() !== '')
+
+        for (const line of lines) {
+          if (line.startsWith('data: ')) {
+            const dataStr = line.slice(6)
+            try {
+              const event = JSON.parse(dataStr)
+              if (onProgress) {
+                onProgress(event)
+              }
+              if (event.type === 'done') {
+                result = event.result
+              }
+            } catch (e) {
+              console.error('解析SSE数据失败:', e)
+            }
+          }
+        }
+      }
+
+      return result
+    } catch (error) {
+      console.error('流式生成失败:', error)
+      throw error
+    }
+  },
+
+  /**
+   * 获取支持的配置信息
+   */
+  async getConfig() {
+    try {
+      const response = await api.get('/image/config')
+      return response.data
+    } catch (error) {
+      console.error('获取配置失败:', error)
+      throw error
+    }
+  }
+}
+
+/**
+ * Agent API (LangChain 智能体)
+ */
+export const agentAPI = {
+  /**
+   * 使用 Agent 自动生成内容
+   * @param {Object} data - 请求数据
+   * @param {string} data.keywords - 关键词
+   * @param {string} data.userMessage - 用户需求
+   * @param {string} data.uploadedImageUrl - 上传的图片URL
+   * @param {string} data.action - 执行模式: 'auto' | 'quick' | 'full'
+   */
+  async generate(data) {
+    try {
+      const response = await api.post('/agent/generate', data)
+      return response.data
+    } catch (error) {
+      console.error('Agent 生成失败:', error)
+      throw error
+    }
+  },
+
+  /**
+   * 流式 Agent 生成
+   * @param {Object} data - 请求数据
+   * @param {Function} onMessage - SSE 消息回调
+   */
+  async streamGenerate(data, onMessage) {
+    try {
+      const response = await fetch('/api/agent/stream', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      })
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+
+      const reader = response.body.getReader()
+      const decoder = new TextDecoder('utf-8')
+
+      while (true) {
+        const { done, value } = await reader.read()
+        if (done) break
+
+        const chunk = decoder.decode(value, { stream: true })
+        const lines = chunk.split('\n').filter(line => line.trim() !== '')
+
+        for (const line of lines) {
+          if (line.startsWith('data: ')) {
+            const dataStr = line.slice(6)
+            try {
+              const event = JSON.parse(dataStr)
+              if (onMessage) {
+                onMessage(event)
+              }
+            } catch (e) {
+              console.error('解析SSE数据失败:', e)
+            }
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Agent 流式生成失败:', error)
+      throw error
+    }
+  },
+
+  /**
+   * 获取 Agent 执行历史
+   */
+  async getHistory() {
+    try {
+      const response = await api.get('/agent/history')
+      return response.data
+    } catch (error) {
+      console.error('获取历史失败:', error)
+      throw error
+    }
+  },
+
+  /**
+   * 清空 Agent 执行历史
+   */
+  async clearHistory() {
+    try {
+      const response = await api.delete('/agent/history')
+      return response.data
+    } catch (error) {
+      console.error('清空历史失败:', error)
+      throw error
+    }
+  },
+
+  /**
+   * 获取记忆统计信息
+   */
+  async getMemoryStats() {
+    try {
+      const response = await api.get('/agent/memory/stats')
+      return response.data
+    } catch (error) {
+      console.error('获取记忆统计失败:', error)
+      throw error
+    }
+  },
+
+  /**
+   * 检索记忆
+   * @param {Object} data - 检索参数
+   * @param {string[]} data.keywords - 关键词
+   * @param {string} data.query - 查询文本
+   * @param {number} data.limit - 返回数量
+   */
+  async retrieveMemory(data) {
+    try {
+      const response = await api.post('/agent/memory/retrieve', data)
+      return response.data
+    } catch (error) {
+      console.error('检索记忆失败:', error)
+      throw error
+    }
+  },
+
+  /**
+   * 清空记忆
+   */
+  async clearMemory() {
+    try {
+      const response = await api.delete('/agent/memory')
+      return response.data
+    } catch (error) {
+      console.error('清空记忆失败:', error)
       throw error
     }
   }

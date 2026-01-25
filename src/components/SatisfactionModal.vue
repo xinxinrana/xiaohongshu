@@ -71,24 +71,28 @@
           />
         </n-form-item>
 
-        <n-form-item label="上传参考图（可选）">
-          <n-upload
-            :max="1"
-            list-type="image-card"
-            :on-change="handleReferenceImageUpload"
-            :on-remove="handleRemoveReferenceImage"
-            accept="image/*"
-          >
-            <n-button>
-              <template #icon>
-                <n-icon><cloud-upload-outlined /></n-icon>
-              </template>
-              上传参考图
-            </n-button>
-          </n-upload>
-          <n-text depth="3" style="margin-top: 8px; display: block; font-size: 12px;">
-            上传参考图可以帮助AI更好地理解您的修改意图
-          </n-text>
+        <n-form-item label="上传参考图（可选，最多6张）">
+          <div class="reference-upload-area">
+            <n-upload
+              :max="6"
+              multiple
+              list-type="image-card"
+              :on-change="handleReferenceImageUpload"
+              :on-remove="handleRemoveReferenceImage"
+              accept="image/*"
+              :file-list="fileList"
+            >
+              <n-button>
+                <template #icon>
+                  <n-icon><cloud-upload-outlined /></n-icon>
+                </template>
+                上传参考图
+              </n-button>
+            </n-upload>
+            <n-text depth="3" style="margin-top: 8px; display: block; font-size: 12px;">
+              上传参考图可以帮助AI更好地理解您的修改意图，支持多图融合
+            </n-text>
+          </div>
         </n-form-item>
       </n-form>
 
@@ -158,12 +162,13 @@ const modalMode = ref('feedback') // 'feedback' | 'edit'
 const analyzing = ref(false)
 const submitting = ref(false)
 const editFormRef = ref(null)
+const fileList = ref([])
 
 const editForm = ref({
   contentFeedback: '',
   imageFeedback: '',
-  referenceImage: null,
-  referenceImageUrl: null
+  referenceImages: [],      // 多图支持
+  referenceImageUrls: []    // 多图URL支持
 })
 
 const editRules = {
@@ -196,9 +201,10 @@ const switchToEditMode = () => {
   editForm.value = {
     contentFeedback: '',
     imageFeedback: '',
-    referenceImage: null,
-    referenceImageUrl: null
+    referenceImages: [],
+    referenceImageUrls: []
   }
+  fileList.value = []
 }
 
 // 返回到反馈模式
@@ -229,7 +235,8 @@ const handleSubmitEdit = async () => {
     emit('edit', {
       contentFeedback: editForm.value.contentFeedback,
       imageFeedback: editForm.value.imageFeedback,
-      referenceImageUrl: editForm.value.referenceImageUrl
+      referenceImages: editForm.value.referenceImageUrls,  // 传递多图URL数组
+      referenceImageUrl: editForm.value.referenceImageUrls[0] || null  // 兼容旧接口
     })
     
     // 关闭模态框并重置状态
@@ -242,17 +249,18 @@ const handleSubmitEdit = async () => {
   }
 }
 
-// 处理参考图上传
-const handleReferenceImageUpload = ({ file, fileList }) => {
-  // 共有两种状态需要处理：
-  // 1. 有 action 时：状态会是 'finished'
-  // 2. 无 action 时：状态是 'pending'，需要手动读取文件
+// 处理参考图上传（支持多图）
+const handleReferenceImageUpload = ({ file, fileList: newFileList }) => {
   if (file.file && (file.status === 'finished' || file.status === 'pending')) {
-    editForm.value.referenceImage = file
     const reader = new FileReader()
     reader.onload = (e) => {
-      editForm.value.referenceImageUrl = e.target.result
-      console.log('[参考图上传成功] Base64长度:', e.target.result?.length)
+      const base64Url = e.target.result
+      // 添加到URL数组
+      if (!editForm.value.referenceImageUrls.includes(base64Url)) {
+        editForm.value.referenceImageUrls.push(base64Url)
+        editForm.value.referenceImages.push(file)
+      }
+      console.log('[参考图上传成功] 当前数量:', editForm.value.referenceImageUrls.length)
       message.success('参考图上传成功')
     }
     reader.onerror = () => {
@@ -260,12 +268,18 @@ const handleReferenceImageUpload = ({ file, fileList }) => {
     }
     reader.readAsDataURL(file.file)
   }
+  fileList.value = newFileList
 }
 
 // 移除参考图
-const handleRemoveReferenceImage = () => {
-  editForm.value.referenceImage = null
-  editForm.value.referenceImageUrl = null
+const handleRemoveReferenceImage = ({ file, fileList: newFileList }) => {
+  // 找到并移除对应的URL
+  const index = editForm.value.referenceImages.findIndex(f => f.id === file.id)
+  if (index > -1) {
+    editForm.value.referenceImages.splice(index, 1)
+    editForm.value.referenceImageUrls.splice(index, 1)
+  }
+  fileList.value = newFileList
 }
 
 // 关闭模态框
@@ -308,5 +322,9 @@ defineExpose({
 
 .edit-mode {
   padding: 10px 0;
+}
+
+.reference-upload-area {
+  width: 100%;
 }
 </style>

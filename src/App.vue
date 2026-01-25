@@ -47,6 +47,12 @@
                       <n-button quaternary circle size="large" @click="activeKey = 'generate'" :active="activeKey === 'generate'">
                         <template #icon><n-icon size="24"><thunderbolt-outlined /></n-icon></template>
                       </n-button>
+                      <n-button quaternary circle size="large" @click="activeKey = 'agent-workbench'" :active="activeKey === 'agent-workbench'">
+                        <template #icon><n-icon size="24"><bulb-outlined /></n-icon></template>
+                      </n-button>
+                      <n-button quaternary circle size="large" @click="activeKey = 'image-workbench'" :active="activeKey === 'image-workbench'">
+                        <template #icon><n-icon size="24"><picture-outlined /></n-icon></template>
+                      </n-button>
                       <n-button quaternary circle size="large" @click="activeKey = 'batch'" :active="activeKey === 'batch'">
                         <template #icon><n-icon size="24"><cloud-download-outlined /></n-icon></template>
                       </n-button>
@@ -87,6 +93,8 @@
                         <transition name="fade-slide" mode="out-in">
                           <div :key="activeKey" class="view-wrapper">
                             <generate-page v-if="activeKey === 'generate'" />
+                            <agent-workbench-page v-else-if="activeKey === 'agent-workbench'" />
+                            <image-workbench-page v-else-if="activeKey === 'image-workbench'" />
                             <batch-generate-page v-else-if="activeKey === 'batch'" />
                             <knowledge-base-page v-else-if="activeKey === 'knowledge'" />
                             <help-page v-else-if="activeKey === 'help'" />
@@ -120,12 +128,8 @@ import {
   NLayoutSider,
   NLayoutHeader,
   NLayoutContent,
-  NMenu,
   NIcon,
-  NBreadcrumb,
-  NBreadcrumbItem,
   NAvatar,
-  NSpace,
   NButton
 } from 'naive-ui'
 import { 
@@ -134,9 +138,9 @@ import {
   BookOutlined,
   SettingOutlined,
   BarChartOutlined,
-  SearchOutlined,
   CloudDownloadOutlined,
-  DownOutlined
+  PictureOutlined,
+  BulbOutlined
 } from '@vicons/antd'
 
 // 自定义图标组件
@@ -151,6 +155,8 @@ import SettingsPage from './views/Settings.vue'
 import AccountAnalysisPage from './views/AccountAnalysis.vue'
 import LandingPage from './views/Landing.vue'
 import MessageApi from './components/MessageApi.vue'
+import ImageWorkbenchPage from './views/ImageWorkbench.vue'
+import AgentWorkbenchPage from './views/AgentWorkbench.vue'
 
 // 状态管理
 const collapsed = ref(false)
@@ -211,6 +217,16 @@ const menuOptions = [
     label: '一键生成',
     key: 'generate',
     icon: () => h(ThunderboltOutlined)
+  },
+  {
+    label: '智能创作',
+    key: 'agent-workbench',
+    icon: () => h(BulbOutlined)
+  },
+  {
+    label: '图像工作台',
+    key: 'image-workbench',
+    icon: () => h(PictureOutlined)
   },
   {
     label: '批量生成',
